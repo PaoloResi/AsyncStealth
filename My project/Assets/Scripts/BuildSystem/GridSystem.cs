@@ -8,18 +8,32 @@ public class GridSystem : MonoBehaviour
     public float gridSize = 1f;
     private GameObject ghostObject;
     private HashSet<Vector3> occupiedPositions = new HashSet<Vector3>();
+    public bool placingMode = false;
 
     void Start()
     {
         CreateGhostObject();
+
     }
 
-    void Update()
+    public void SetObjectToPlace(GameObject objToPlace)
     {
-        UpdateGhostPosition();
-        if (Mouse.current.leftButton.wasPressedThisFrame)
-            PlaceObject();
+        objectToPlace = objToPlace;
+        CreateGhostObject();
     }
+
+
+    void Update()
+    {   if (placingMode == true)
+        {
+            UpdateGhostPosition();
+            if (Mouse.current.leftButton.wasPressedThisFrame)
+                PlaceObject();
+        }
+    }
+
+    
+
     void CreateGhostObject()
     {
         ghostObject = Instantiate(objectToPlace);
