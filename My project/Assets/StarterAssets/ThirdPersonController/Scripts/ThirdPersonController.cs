@@ -210,7 +210,6 @@ namespace StarterAssets
 
             transform.rotation = Quaternion.Lerp(transform.rotation, CamRotation, 0.1f);
 
-
         }
 
         private void Move()
