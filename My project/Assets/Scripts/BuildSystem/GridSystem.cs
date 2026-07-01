@@ -198,7 +198,6 @@ public class GridSystem : MonoBehaviour
             if (objRotAction.action.WasPressedThisFrame())
             {
                 hoveredObject.transform.rotation *= Quaternion.Euler(0, 90, 0);
-                Debug.Log(hoveredObject.transform.eulerAngles);
             }
         }
         else
