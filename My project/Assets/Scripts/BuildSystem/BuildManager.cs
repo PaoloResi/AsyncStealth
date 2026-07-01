@@ -37,7 +37,7 @@ public class BuildManager : MonoBehaviour
     public void DeleteBuildMode()
     {
         gridSystem.deleteMode = !gridSystem.deleteMode;
-        gridSystem.placingMode = !gridSystem.placingMode;
+        buildingsCanvas.SetActive(false);
     }
 
     public void SelectBuilding()

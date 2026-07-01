@@ -14,6 +14,10 @@ public class GridSystem : MonoBehaviour
     private GameObject hoveredObject;
     private Color OGHoveredColor;
     [SerializeField] private GameObject buildingsCanvas;
+    public InputActionReference objRotAction;
+    void OnEnable() => objRotAction.action.Enable();
+    void OnDisable() => objRotAction.action.Disable();
+
 
 
 
@@ -64,6 +68,11 @@ public class GridSystem : MonoBehaviour
             {
                 RemoveObject();
             }
+            if (Mouse.current.rightButton.wasPressedThisFrame)
+            {
+                deleteMode = false;
+                buildingsCanvas.SetActive(!buildingsCanvas.activeSelf);
+            }
         }
     }
 
@@ -111,12 +120,20 @@ public class GridSystem : MonoBehaviour
                 Mathf.Round(point.z/gridSize) * gridSize
             );
 
+            
+
             ghostObject.transform.position = snappedPosition;
 
             if (occupiedPositions.Contains(snappedPosition))
                 SetColor(Color.red);
             else
                 SetColor(new  Color(1f,1f,1f,0.5f));
+
+            if (objRotAction.action.WasPressedThisFrame())
+            {
+                print("test");
+                ghostObject.transform.rotation *= Quaternion.Euler(0, 90, 0);
+            }
         }
         else
         {

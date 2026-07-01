@@ -19,7 +19,6 @@ public class IsometricCameraRotation : MonoBehaviour
     void Update()
     {
         float rotateInput = camRotateAction.action.ReadValue<float>();
-        print(rotateInput);
         if (rotateInput != 0)
         {
             transform.Rotate(Vector3.up, rotateInput * rotationSpeed * Time.deltaTime);
