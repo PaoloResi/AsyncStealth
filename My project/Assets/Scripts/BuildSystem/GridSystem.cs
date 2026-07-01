@@ -198,6 +198,7 @@ public class GridSystem : MonoBehaviour
             if (objRotAction.action.WasPressedThisFrame())
             {
                 hoveredObject.transform.rotation *= Quaternion.Euler(0, 90, 0);
+                Debug.Log(hoveredObject.transform.eulerAngles);
             }
         }
         else
@@ -267,7 +268,7 @@ public class GridSystem : MonoBehaviour
 
         if (!occupiedPositions.Contains(placementPosition))
         {
-            Instantiate(objectToPlace, placementPosition, Quaternion.identity);
+            Instantiate(objectToPlace, placementPosition, ghostObject.transform.rotation);
 
             occupiedPositions.Add(placementPosition);
         }
