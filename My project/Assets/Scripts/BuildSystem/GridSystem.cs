@@ -11,7 +11,8 @@ public class GridSystem : MonoBehaviour
     public bool placingMode = false;
     public bool onPlane = false;
     public bool deleteMode = false;
-    private GameObject hoveredObject;
+    public bool moveMode = false;
+    [SerializeField] private GameObject hoveredObject;
     private Color OGHoveredColor;
     [SerializeField] private GameObject buildingsCanvas;
     public InputActionReference objRotAction;
@@ -55,15 +56,14 @@ public class GridSystem : MonoBehaviour
                 StopGhostPosition();
             }
         }
-
-        if (deleteMode)
+        else if (deleteMode)
         {
             if (ghostObject)
             {
                 Destroy(ghostObject);
                 ghostObject = null;
             }
-            highlightHover();
+            highlightHover(Color.red);
             if (Mouse.current.leftButton.wasPressedThisFrame && hoveredObject)
             {
                 RemoveObject();
@@ -72,6 +72,35 @@ public class GridSystem : MonoBehaviour
             {
                 deleteMode = false;
                 buildingsCanvas.SetActive(!buildingsCanvas.activeSelf);
+            }
+        }
+        else
+        {   if (!moveMode)
+            {
+                highlightHover(Color.white);
+            }
+            if (Mouse.current.leftButton.wasPressedThisFrame && hoveredObject)
+            {
+                moveMode = !moveMode;
+                hoveredObject.GetComponent<Collider>().enabled = !hoveredObject.GetComponent<Collider>().enabled;
+                
+                if (moveMode)
+                {
+                    Vector3 objectPos = hoveredObject.transform.position;
+                    occupiedPositions.Remove(objectPos);
+                }
+                else
+                {
+                    Vector3 objectPos = hoveredObject.transform.position;
+                    occupiedPositions.Add(objectPos);
+                }
+
+
+            }
+
+            if (moveMode && hoveredObject)
+            {
+                UpdateHoveredObjPos();
             }
         }
     }
@@ -142,13 +171,55 @@ public class GridSystem : MonoBehaviour
         }
     }
 
+    public void UpdateHoveredObjPos()
+    {
+        Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
+
+        if (Physics.Raycast(ray, out RaycastHit hit))
+        {
+            print("test 1");
+            hoveredObject.GetComponent<MeshRenderer>().enabled = true;
+            onPlane = true;
+            Vector3 point = hit.point;
+            print("test 2");
+
+            Vector3 snappedPosition = new Vector3(
+                Mathf.Round(point.x / gridSize) * gridSize,
+                Mathf.Round(point.y / gridSize) * gridSize,
+                Mathf.Round(point.z / gridSize) * gridSize
+            );
+
+            print("test 3");
+
+            hoveredObject.transform.position = snappedPosition;
+
+            if (occupiedPositions.Contains(snappedPosition))
+                SetColor(Color.red);
+            else
+                SetColor(new Color(1f, 1f, 1f, 0.5f));
+
+            print("test 4");
+
+            if (objRotAction.action.WasPressedThisFrame())
+            {
+                print("test");
+                hoveredObject.transform.rotation *= Quaternion.Euler(0, 90, 0);
+            }
+        }
+        else
+        {
+            onPlane = false;
+            hoveredObject.GetComponent<MeshRenderer>().enabled = false;
+        }
+    }
+
     public void StopGhostPosition()
     {
         Destroy(ghostObject);
         ghostObject = null;
     }
 
-    public void highlightHover()
+    public void highlightHover(Color color)
     {
         Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
         if (Physics.Raycast(ray, out RaycastHit hit) && hit.transform.CompareTag("Building"))
@@ -163,7 +234,7 @@ public class GridSystem : MonoBehaviour
                 hoveredObject = hit.collider.gameObject;
 
                 OGHoveredColor = hoveredObject.GetComponentInChildren<Renderer>().material.color;
-                SetColor(Color.red);
+                SetColor(color);
             }
         }
         else
