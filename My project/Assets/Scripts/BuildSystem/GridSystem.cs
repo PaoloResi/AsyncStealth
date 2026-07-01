@@ -13,19 +13,25 @@ public class GridSystem : MonoBehaviour
     public bool deleteMode = false;
     private GameObject hoveredObject;
     private Color OGHoveredColor;
+    [SerializeField] private GameObject buildingsCanvas;
+
 
 
 
     void Start()
     {
-        CreateGhostObject();
 
     }
 
     public void SetObjectToPlace(GameObject objToPlace)
     {
         objectToPlace = objToPlace;
-        CreateGhostObject();
+    }
+
+    public void setPlaceMode()
+    {
+        placingMode = !placingMode;
+        buildingsCanvas.SetActive(!buildingsCanvas.activeSelf);
     }
 
 
@@ -39,6 +45,11 @@ public class GridSystem : MonoBehaviour
             UpdateGhostPosition();
             if (Mouse.current.leftButton.wasPressedThisFrame && onPlane)
                 PlaceObject();
+            if (Mouse.current.rightButton.wasPressedThisFrame)
+            {
+                setPlaceMode();
+                StopGhostPosition();
+            }
         }
 
         if (deleteMode)
@@ -72,15 +83,16 @@ public class GridSystem : MonoBehaviour
             color.a = 0.5f;
             mat.color = color;
 
-            mat.SetFloat("_Mode", 2);
-            mat.SetInt("_ScrBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            mat.SetFloat("_Surface", 1);
+            mat.SetOverrideTag("RenderType", "Transparent");
+            mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
             mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
             mat.SetInt("_ZWrite", 0);
             mat.DisableKeyword("_ALPHATEST_ON");
-            mat.EnableKeyword("_ALPHABLEND_ON");
-            mat.DisableKeyword("_ALPHAPREMULTIPLY_ON");
-            mat.renderQueue = 3000;
+            mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            mat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
         }
+        ghostObject.GetComponent<MeshRenderer>().enabled = false;
     }
 
     void UpdateGhostPosition()
@@ -89,6 +101,7 @@ public class GridSystem : MonoBehaviour
 
         if (Physics.Raycast(ray, out RaycastHit hit))
         {
+            ghostObject.GetComponent<MeshRenderer>().enabled = true;
             onPlane = true;
             Vector3 point = hit.point;
 
@@ -108,7 +121,14 @@ public class GridSystem : MonoBehaviour
         else
         {
             onPlane = false;
+            ghostObject.GetComponent<MeshRenderer>().enabled = false;
         }
+    }
+
+    public void StopGhostPosition()
+    {
+        Destroy(ghostObject);
+        ghostObject = null;
     }
 
     public void highlightHover()

@@ -18,12 +18,11 @@ public class IsometricCameraRotation : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Mouse.current.rightButton.isPressed)
+        float rotateInput = camRotateAction.action.ReadValue<float>();
+        print(rotateInput);
+        if (rotateInput != 0)
         {
-            float mouseDeltaX = camRotateAction.action.ReadValue<Vector2>().x;
-            //Input.GetAxis("Mouse X");
-
-            transform.Rotate(Vector3.up, mouseDeltaX * rotationSpeed * Time.deltaTime, Space.World);
+            transform.Rotate(Vector3.up, rotateInput * rotationSpeed * Time.deltaTime);
         }
     }
 }

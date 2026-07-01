@@ -214,6 +214,18 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 302212662}
+        m_TargetAssemblyTypeName: GridSystem, Assembly-CSharp
+        m_MethodName: setPlaceMode
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &100241787
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -267,7 +279,7 @@ GameObject:
   - component: {fileID: 302212662}
   m_Layer: 0
   m_Name: Plane
-  m_TagString: Untagged
+  m_TagString: Ground
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -383,7 +395,7 @@ MonoBehaviour:
   placingMode: 0
   onPlane: 0
   deleteMode: 0
-  hoveredObject: {fileID: 0}
+  buildingsCanvas: {fileID: 1543652072}
 --- !u!1 &330585543
 GameObject:
   m_ObjectHideFlags: 0
@@ -1877,6 +1889,18 @@ MonoBehaviour:
         m_Arguments:
           m_ObjectArgument: {fileID: 4543727454441982015, guid: d579d861787054044b383af2a2246dfd, type: 3}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.GameObject, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 302212662}
+        m_TargetAssemblyTypeName: GridSystem, Assembly-CSharp
+        m_MethodName: setPlaceMode
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
           m_StringArgument: 

@@ -25,14 +25,13 @@ public class BuildManager : MonoBehaviour
     {
         buildingsCanvas.SetActive(true);
         StartBuildingButton.SetActive(false);
-        gridSystem.placingMode = true;
+        //gridSystem.placingMode = true;
     }
 
     public void ExitBuildMode()
     {
         buildingsCanvas.SetActive(false);
         StartBuildingButton.SetActive(true);
-        gridSystem.placingMode = false;
     }
 
     public void DeleteBuildMode()
