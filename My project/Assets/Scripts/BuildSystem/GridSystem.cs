@@ -160,7 +160,6 @@ public class GridSystem : MonoBehaviour
 
             if (objRotAction.action.WasPressedThisFrame())
             {
-                print("test");
                 ghostObject.transform.rotation *= Quaternion.Euler(0, 90, 0);
             }
         }
@@ -177,11 +176,9 @@ public class GridSystem : MonoBehaviour
 
         if (Physics.Raycast(ray, out RaycastHit hit))
         {
-            print("test 1");
             hoveredObject.GetComponent<MeshRenderer>().enabled = true;
             onPlane = true;
             Vector3 point = hit.point;
-            print("test 2");
 
             Vector3 snappedPosition = new Vector3(
                 Mathf.Round(point.x / gridSize) * gridSize,
@@ -189,7 +186,6 @@ public class GridSystem : MonoBehaviour
                 Mathf.Round(point.z / gridSize) * gridSize
             );
 
-            print("test 3");
 
             hoveredObject.transform.position = snappedPosition;
 
@@ -198,11 +194,9 @@ public class GridSystem : MonoBehaviour
             else
                 SetColor(new Color(1f, 1f, 1f, 0.5f));
 
-            print("test 4");
 
             if (objRotAction.action.WasPressedThisFrame())
             {
-                print("test");
                 hoveredObject.transform.rotation *= Quaternion.Euler(0, 90, 0);
             }
         }
