@@ -35,6 +35,12 @@ public class BuildManager : MonoBehaviour
         gridSystem.placingMode = false;
     }
 
+    public void DeleteBuildMode()
+    {
+        gridSystem.deleteMode = !gridSystem.deleteMode;
+        gridSystem.placingMode = !gridSystem.placingMode;
+    }
+
     public void SelectBuilding()
     {
         

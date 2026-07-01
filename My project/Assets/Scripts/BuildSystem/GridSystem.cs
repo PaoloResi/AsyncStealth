@@ -9,6 +9,12 @@ public class GridSystem : MonoBehaviour
     private GameObject ghostObject;
     private HashSet<Vector3> occupiedPositions = new HashSet<Vector3>();
     public bool placingMode = false;
+    public bool onPlane = false;
+    public bool deleteMode = false;
+    private GameObject hoveredObject;
+    private Color OGHoveredColor;
+
+
 
     void Start()
     {
@@ -26,9 +32,27 @@ public class GridSystem : MonoBehaviour
     void Update()
     {   if (placingMode == true)
         {
+            if (!ghostObject)
+            {
+                CreateGhostObject();
+            }
             UpdateGhostPosition();
-            if (Mouse.current.leftButton.wasPressedThisFrame)
+            if (Mouse.current.leftButton.wasPressedThisFrame && onPlane)
                 PlaceObject();
+        }
+
+        if (deleteMode)
+        {
+            if (ghostObject)
+            {
+                Destroy(ghostObject);
+                ghostObject = null;
+            }
+            highlightHover();
+            if (Mouse.current.leftButton.wasPressedThisFrame && hoveredObject)
+            {
+                RemoveObject();
+            }
         }
     }
 
@@ -65,6 +89,7 @@ public class GridSystem : MonoBehaviour
 
         if (Physics.Raycast(ray, out RaycastHit hit))
         {
+            onPlane = true;
             Vector3 point = hit.point;
 
             Vector3 snappedPosition = new Vector3(
@@ -76,17 +101,58 @@ public class GridSystem : MonoBehaviour
             ghostObject.transform.position = snappedPosition;
 
             if (occupiedPositions.Contains(snappedPosition))
-                SetGhostColor(Color.red);
+                SetColor(Color.red);
             else
-                SetGhostColor(new  Color(1f,1f,1f,0.5f));
+                SetColor(new  Color(1f,1f,1f,0.5f));
+        }
+        else
+        {
+            onPlane = false;
         }
     }
 
-    void SetGhostColor(Color color)
+    public void highlightHover()
     {
-        Renderer[] renderers=ghostObject.GetComponentsInChildren<Renderer>();
+        Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
+        if (Physics.Raycast(ray, out RaycastHit hit) && hit.transform.CompareTag("Building"))
+        {
+            if (hoveredObject != hit.collider.gameObject)
+            {
+                if (hoveredObject)
+                {
+                    SetColor(OGHoveredColor);
+                }
 
-        foreach(Renderer renderer in renderers)
+                hoveredObject = hit.collider.gameObject;
+
+                OGHoveredColor = hoveredObject.GetComponentInChildren<Renderer>().material.color;
+                SetColor(Color.red);
+            }
+        }
+        else
+        {
+            if (hoveredObject)
+            {
+                SetColor(OGHoveredColor);
+                hoveredObject = null;
+            }
+        }
+
+    }
+
+    void SetColor(Color color)
+    {
+        Renderer[] renderers;
+        if (placingMode)
+        {
+            renderers = ghostObject.GetComponentsInChildren<Renderer>();
+        }
+        else
+        {
+            renderers = hoveredObject.GetComponentsInChildren<Renderer>();
+        }
+
+        foreach (Renderer renderer in renderers)
         {
             Material mat = renderer.material;
             mat.color = color;
@@ -103,5 +169,13 @@ public class GridSystem : MonoBehaviour
 
             occupiedPositions.Add(placementPosition);
         }
+    }
+
+    void RemoveObject()
+    {
+        Vector3 objectPos = hoveredObject.transform.position;
+        Destroy(hoveredObject);
+
+        occupiedPositions.Remove(objectPos);
     }
 }
