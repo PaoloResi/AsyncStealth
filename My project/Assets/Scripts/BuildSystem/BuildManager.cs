@@ -4,13 +4,23 @@ public class BuildManager : MonoBehaviour
 {
 
     [SerializeField] private GameObject StartBuildingButton;
+    private int maxBuilds = 100;
+    public int buildCount = 0;
 
     public GridSystem gridSystem;
+
+    public static BuildManager instance;
 
     [SerializeField] private GameObject buildingsCanvas;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        if (instance)
+        {
+            DestroyImmediate(gameObject);
+            return;
+        }
+        instance = this;
         
     }
 

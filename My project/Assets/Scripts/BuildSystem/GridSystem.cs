@@ -7,7 +7,7 @@ public class GridSystem : MonoBehaviour
     public GameObject objectToPlace;
     public float gridSize = 1f;
     private GameObject ghostObject;
-    private HashSet<Vector3> occupiedPositions = new HashSet<Vector3>();
+    private HashSet<Vector3Int> occupiedPositions = new HashSet<Vector3Int>();
     public bool placingMode = false;
     public bool onPlane = false;
     public bool deleteMode = false;
@@ -37,6 +37,73 @@ public class GridSystem : MonoBehaviour
     {
         placingMode = !placingMode;
         buildingsCanvas.SetActive(!buildingsCanvas.activeSelf);
+    }
+
+    Vector3Int WorldToCell(Vector3 world) => new Vector3Int(
+        Mathf.RoundToInt(world.x / gridSize),
+        Mathf.RoundToInt(world.y / gridSize),
+        Mathf.RoundToInt(world.z / gridSize)
+        );
+
+    Vector3 CellToWorld(Vector3Int cell) => new Vector3(
+        cell.x * gridSize,
+        cell.y * gridSize,
+        cell.z * gridSize
+        );
+
+
+    Vector3Int GetFootprintSize(GameObject obj)
+    {
+        MeshFilter[] filters = obj.GetComponentsInChildren<MeshFilter>();
+        if (filters.Length == 0) return Vector3Int.one;
+
+        Bounds local = filters[0].sharedMesh.bounds;
+
+        for (int i = 1; i < filters.Length; i++)
+            local.Encapsulate(filters[i].sharedMesh.bounds);
+
+        Vector3 scaled = Vector3.Scale(local.size, obj.transform.lossyScale);
+
+        return new Vector3Int(
+            Mathf.Max(1, Mathf.CeilToInt(scaled.x / gridSize - 0.01f)),
+            Mathf.Max(1, Mathf.CeilToInt(scaled.y / gridSize - 0.01f)),
+            Mathf.Max(1, Mathf.CeilToInt(scaled.z / gridSize - 0.01f))
+            );
+
+    }
+
+    Vector3Int GetRotatedSize(Vector3Int size, Quaternion rot)
+    {
+        int steps = Mathf.RoundToInt(rot.eulerAngles.y / 90f) & 3;
+        if (steps % 2 == 1)
+            return new Vector3Int (size.z, size.y, size.x);
+        return size;
+
+    }
+
+    IEnumerable<Vector3Int> GetCells(Vector3Int origin, Vector3Int size)
+    {
+        for (int x = 0; x < size.x; x++)
+            for (int y = 0; y < size.y; y++)
+                for (int z = 0; z < size.z; z++)
+                    yield return new Vector3Int(origin.x + x, origin.y + y, origin.z + z);
+    }
+
+    bool AreCellsFree(Vector3Int origin, Vector3Int size)
+    {
+        foreach (Vector3Int c in GetCells(origin, size))
+            if (occupiedPositions.Contains(c))
+                return false;
+        return true;
+    }
+
+    Vector3 FootprintOffset(Vector3Int size)
+    {
+        return new Vector3(
+            (size.x -1) * gridSize * 0.5f,
+            0f,
+            (size.z - 1) * gridSize * 0.5f
+        );
     }
 
 
@@ -81,21 +148,23 @@ public class GridSystem : MonoBehaviour
             }
             if (Mouse.current.leftButton.wasPressedThisFrame && hoveredObject)
             {
-                moveMode = !moveMode;
-                hoveredObject.GetComponent<Collider>().enabled = !hoveredObject.GetComponent<Collider>().enabled;
+                Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
+
+                if (Physics.Raycast(ray, out RaycastHit hit) && (hit.transform.CompareTag("Ground") || !moveMode))
+                {
+                    moveMode = !moveMode;
+                    hoveredObject.GetComponent<Collider>().enabled = !hoveredObject.GetComponent<Collider>().enabled;
+
+                    Vector3Int size = GetRotatedSize(GetFootprintSize(hoveredObject), hoveredObject.transform.rotation);
+                    Vector3Int origin = WorldToCell(hoveredObject.transform.position - FootprintOffset(size));
+
+                    foreach (Vector3Int c in GetCells(origin, size))
+                    {
+                        if (moveMode) occupiedPositions.Remove(c);
+                        else occupiedPositions.Add(c);
+                    }
+                }
                 
-                if (moveMode)
-                {
-                    Vector3 objectPos = hoveredObject.transform.position;
-                    occupiedPositions.Remove(objectPos);
-                }
-                else
-                {
-                    Vector3 objectPos = hoveredObject.transform.position;
-                    occupiedPositions.Add(objectPos);
-                }
-
-
             }
 
             if (moveMode && hoveredObject)
@@ -141,22 +210,21 @@ public class GridSystem : MonoBehaviour
         {
             ghostObject.GetComponent<MeshRenderer>().enabled = true;
             onPlane = true;
-            Vector3 point = hit.point;
 
-            Vector3 snappedPosition = new Vector3(
-                Mathf.Round(point.x/gridSize) * gridSize,
-                Mathf.Round(point.y/gridSize) * gridSize,
-                Mathf.Round(point.z/gridSize) * gridSize
-            );
+
+            Vector3Int size = GetRotatedSize(GetFootprintSize(ghostObject), ghostObject.transform.rotation);
+            Vector3Int origin = WorldToCell(hit.point);
+
+            ghostObject.transform.position = CellToWorld(origin) + FootprintOffset(size);
 
             
-
-            ghostObject.transform.position = snappedPosition;
-
-            if (occupiedPositions.Contains(snappedPosition))
-                SetColor(Color.red);
+            if (AreCellsFree(origin, size))
+                SetColor(new Color(1f, 1f, 1f, 0.5f));
             else
-                SetColor(new  Color(1f,1f,1f,0.5f));
+                SetColor(Color.red);
+
+            if (!hit.transform.CompareTag("Ground"))
+                SetColor(Color.red);
 
             if (objRotAction.action.WasPressedThisFrame())
             {
@@ -178,21 +246,21 @@ public class GridSystem : MonoBehaviour
         {
             hoveredObject.GetComponent<MeshRenderer>().enabled = true;
             onPlane = true;
-            Vector3 point = hit.point;
-
-            Vector3 snappedPosition = new Vector3(
-                Mathf.Round(point.x / gridSize) * gridSize,
-                Mathf.Round(point.y / gridSize) * gridSize,
-                Mathf.Round(point.z / gridSize) * gridSize
-            );
 
 
-            hoveredObject.transform.position = snappedPosition;
+            Vector3Int size = GetRotatedSize(GetFootprintSize(hoveredObject), hoveredObject.transform.rotation);
+            Vector3Int origin = WorldToCell(hit.point);
 
-            if (occupiedPositions.Contains(snappedPosition))
-                SetColor(Color.red);
-            else
+            hoveredObject.transform.position = CellToWorld(origin) + FootprintOffset(size);
+
+
+            if (AreCellsFree(origin, size))
                 SetColor(new Color(1f, 1f, 1f, 0.5f));
+            else
+                SetColor(Color.red);
+
+            if (!hit.transform.CompareTag("Ground"))
+                SetColor(Color.red);
 
 
             if (objRotAction.action.WasPressedThisFrame())
@@ -263,21 +331,33 @@ public class GridSystem : MonoBehaviour
 
     void PlaceObject()
     {
-        Vector3 placementPosition = ghostObject.transform.position;
-
-        if (!occupiedPositions.Contains(placementPosition))
+        Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
+        if (Physics.Raycast(ray, out RaycastHit hit) && hit.transform.CompareTag("Ground"))
         {
-            Instantiate(objectToPlace, placementPosition, ghostObject.transform.rotation);
+            Vector3Int size = GetRotatedSize(
+            GetFootprintSize(ghostObject), ghostObject.transform.rotation);
+            Vector3Int origin = WorldToCell(ghostObject.transform.position - FootprintOffset(size));
 
-            occupiedPositions.Add(placementPosition);
+            if (AreCellsFree(origin, size))
+            {
+                Instantiate(objectToPlace, CellToWorld(origin) + FootprintOffset(size), ghostObject.transform.rotation);
+                foreach (Vector3Int c in GetCells(origin, size))
+                    occupiedPositions.Add(c);
+                BuildManager.instance.buildCount++;
+            }
         }
-    }
+}
 
     void RemoveObject()
     {
-        Vector3 objectPos = hoveredObject.transform.position;
+        Vector3Int size = GetRotatedSize(
+            GetFootprintSize(hoveredObject), hoveredObject.transform.rotation);
+        Vector3Int origin = WorldToCell(hoveredObject.transform.position - FootprintOffset(size));
+
         Destroy(hoveredObject);
 
-        occupiedPositions.Remove(objectPos);
+        foreach (Vector3Int c in GetCells(origin, size))
+            occupiedPositions.Remove(c);
+        BuildManager.instance.buildCount--;
     }
 }

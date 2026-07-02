@@ -372,7 +372,7 @@ Transform:
   m_GameObject: {fileID: 302212657}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.89338, y: -0, z: -2.42293}
+  m_LocalPosition: {x: 2, y: -0, z: 2}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -395,6 +395,8 @@ MonoBehaviour:
   placingMode: 0
   onPlane: 0
   deleteMode: 0
+  moveMode: 0
+  hoveredObject: {fileID: 0}
   buildingsCanvas: {fileID: 1543652072}
   objRotAction: {fileID: 8554298190578262403, guid: 052faaac586de48259a63d0c4782560b, type: 3}
 --- !u!1 &330585543
