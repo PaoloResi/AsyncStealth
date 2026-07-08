@@ -19,9 +19,11 @@ namespace StarterAssets
         [Header("Player")]
         [Tooltip("Move speed of the character in m/s")]
         public float MoveSpeed = 2.0f;
+        public float oldMoveSpeed;
 
         [Tooltip("Sprint speed of the character in m/s")]
         public float SprintSpeed = 5.335f;
+        public float oldSprintSpeed;
 
         [Tooltip("How fast the character turns to face movement direction")]
         [Range(0.0f, 0.3f)]
@@ -85,8 +87,19 @@ namespace StarterAssets
         private float _cinemachineTargetPitch;
         public float Speed;
         public InputActionReference lookAction;
-        void OnEnable() => lookAction.action.Enable();
-        void OnDisable() => lookAction.action.Disable();
+        public InputActionReference crouchAction;
+        public bool crouching = false;
+        void OnEnable() 
+        {
+            lookAction.action.Enable();
+            crouchAction.action.Enable();
+        }
+        void OnDisable()
+        {
+            lookAction.action.Disable();
+            crouchAction.action.Disable();
+
+        }
 
 
         // player
@@ -115,6 +128,7 @@ namespace StarterAssets
         private CharacterController _controller;
         private StarterAssetsInputs _input;
         private GameObject _mainCamera;
+        private Collider playerCapsuleCollider;
 
         private const float _threshold = 0.01f;
 
@@ -151,6 +165,7 @@ namespace StarterAssets
             _input = GetComponent<StarterAssetsInputs>();
 #if ENABLE_INPUT_SYSTEM 
             _playerInput = GetComponent<PlayerInput>();
+            playerCapsuleCollider = GetComponentInChildren<Collider>();
 #else
 			Debug.LogError( "Starter Assets package is missing dependencies. Please use Tools/Starter Assets/Reinstall Dependencies to fix it");
 #endif
@@ -169,6 +184,7 @@ namespace StarterAssets
             JumpAndGravity();
             GroundedCheck();
             Move();
+            crouch();
         }
 
         private void LateUpdate()
@@ -346,6 +362,38 @@ namespace StarterAssets
             if (_verticalVelocity < _terminalVelocity)
             {
                 _verticalVelocity += Gravity * Time.deltaTime;
+            }
+        }
+
+        private void crouch()
+        {
+            if (Grounded)
+            {
+                if (crouchAction.action.WasPressedThisFrame())
+                {
+                    if (!crouching)
+                    {
+                        playerCapsuleCollider.transform.localScale = playerCapsuleCollider.transform.localScale / 2;
+                        Vector3 locPos = playerCapsuleCollider.transform.localPosition;
+                        locPos = new (locPos.x, locPos.y/2, locPos.z);
+                        oldMoveSpeed = MoveSpeed;
+                        MoveSpeed = MoveSpeed / 2;
+                        oldSprintSpeed = SprintSpeed;
+                        SprintSpeed = SprintSpeed / 2;
+                        crouching = true;
+
+
+                    }
+                    else
+                    {
+                        playerCapsuleCollider.transform.localScale = playerCapsuleCollider.transform.localScale * 2;
+                        Vector3 locPos = playerCapsuleCollider.transform.localPosition;
+                        locPos = new(locPos.x, locPos.y * 2, locPos.z);
+                        MoveSpeed = oldMoveSpeed;
+                        SprintSpeed = oldSprintSpeed;
+                        crouching = false;
+                    }
+                }
             }
         }
 

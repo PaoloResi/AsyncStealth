@@ -21,11 +21,9 @@ public class CameraMovement : MonoBehaviour
     // Update is called once per frame
     void LateUpdate()
     {
-        //transform.LookAt(target);
-        //transform.Translate(Vector3.right * Time.deltaTime);
-
+        
         currentX += lookAction.action.ReadValue<Vector2>().x * sensivity * Time.deltaTime;
-        currentY += lookAction.action.ReadValue<Vector2>().y * sensivity * Time.deltaTime;
+        currentY -= lookAction.action.ReadValue<Vector2>().y * sensivity * Time.deltaTime;
 
         currentY = Mathf.Clamp(currentY, YMin, YMax);
 
