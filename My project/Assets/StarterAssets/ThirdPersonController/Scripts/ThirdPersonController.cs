@@ -88,6 +88,7 @@ namespace StarterAssets
         public float Speed;
         public InputActionReference lookAction;
         public InputActionReference crouchAction;
+        public Transform gunTransform;
         public bool crouching = false;
         void OnEnable() 
         {
@@ -225,6 +226,10 @@ namespace StarterAssets
             CamRotation.z = 0f;
 
             transform.rotation = Quaternion.Lerp(transform.rotation, CamRotation, 0.1f);
+
+            float pitch = _mainCamera.transform.localEulerAngles.x;
+
+            gunTransform.localRotation = Quaternion.Euler(pitch, 0f, 0f);
 
         }
 

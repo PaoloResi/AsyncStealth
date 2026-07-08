@@ -184,12 +184,19 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 7040659881675835329, guid: 052faaac586de48259a63d0c4782560b, type: 3}
     - target: {fileID: 1925873226565265913, guid: 2553cec8fdb3eb643bbe9f2ec880c472, type: 3}
+      propertyPath: gunTransform
+      value: 
+      objectReference: {fileID: 969859639}
+    - target: {fileID: 1925873226565265913, guid: 2553cec8fdb3eb643bbe9f2ec880c472, type: 3}
       propertyPath: GroundLayers.m_Bits
       value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 1293029876712600392, guid: 2553cec8fdb3eb643bbe9f2ec880c472, type: 3}
+      insertIndex: 2
+      addedObject: {fileID: 812789098}
     - targetCorrespondingSourceObject: {fileID: 29811324, guid: 2553cec8fdb3eb643bbe9f2ec880c472, type: 3}
       insertIndex: -1
       addedObject: {fileID: 317601813}
@@ -315,6 +322,11 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 29811324, guid: 2553cec8fdb3eb643bbe9f2ec880c472, type: 3}
   m_PrefabInstance: {fileID: 108889103}
   m_PrefabAsset: {fileID: 0}
+--- !u!4 &445128846 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 1293029876712600392, guid: 2553cec8fdb3eb643bbe9f2ec880c472, type: 3}
+  m_PrefabInstance: {fileID: 108889103}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &576580081
 GameObject:
   m_ObjectHideFlags: 0
@@ -433,12 +445,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 812789095}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.83, y: 2, z: -5.87}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0.4, y: 2, z: -3.2827733}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 445128846}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &812789099
 MonoBehaviour:
@@ -500,6 +512,11 @@ MonoBehaviour:
   distance: 5
   sensivity: 4
   lookAction: {fileID: -5630151704836100654, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+--- !u!4 &969859639 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 9124432094872245708, guid: 2553cec8fdb3eb643bbe9f2ec880c472, type: 3}
+  m_PrefabInstance: {fileID: 108889103}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1552543705
 GameObject:
   m_ObjectHideFlags: 0
@@ -744,7 +761,6 @@ Transform:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
-  - {fileID: 812789098}
   - {fileID: 1552543707}
   - {fileID: 1648594741}
   - {fileID: 108889103}
