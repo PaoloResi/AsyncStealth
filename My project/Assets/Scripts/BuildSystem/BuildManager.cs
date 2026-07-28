@@ -50,8 +50,4 @@ public class BuildManager : MonoBehaviour
         buildingsCanvas.SetActive(false);
     }
 
-    public void SelectBuilding()
-    {
-        
-    }
 }

@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 7524097120659517173}
   - component: {fileID: 6083428589175017970}
   - component: {fileID: 3845237957544153940}
+  - component: {fileID: 5496967576396815504}
   m_Layer: 0
   m_Name: Cube
   m_TagString: Building
@@ -112,3 +113,16 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &5496967576396815504
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4543727454441982015}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44e2556b453c4c54297734640a80e92b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BuildingIdentity
+  buildId: Cube_001

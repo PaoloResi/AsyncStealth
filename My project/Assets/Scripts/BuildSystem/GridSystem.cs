@@ -18,15 +18,8 @@ public class GridSystem : MonoBehaviour
     public InputActionReference objRotAction;
     void OnEnable() => objRotAction.action.Enable();
     void OnDisable() => objRotAction.action.Disable();
+    public BuildingRegistry buildingRegistry;
 
-
-
-
-
-    void Start()
-    {
-
-    }
 
     public void SetObjectToPlace(GameObject objToPlace)
     {
@@ -359,5 +352,70 @@ public class GridSystem : MonoBehaviour
         foreach (Vector3Int c in GetCells(origin, size))
             occupiedPositions.Remove(c);
         BuildManager.instance.buildCount--;
+    }
+
+    public void RemoveAll()
+    {
+        GameObject[] placedBuildings = GameObject.FindGameObjectsWithTag("Building");
+
+        foreach (GameObject i in placedBuildings)
+        {
+            Vector3Int size = GetRotatedSize(
+            GetFootprintSize(i), i.transform.rotation);
+            Vector3Int origin = WorldToCell(i.transform.position - FootprintOffset(size));
+
+            Destroy(i);
+
+            foreach (Vector3Int c in GetCells(origin, size))
+                occupiedPositions.Remove(c);
+            BuildManager.instance.buildCount--;
+        }
+    }
+
+    public void Save()
+    {
+        BuildingSaveData saveData = new BuildingSaveData();
+        GameObject[] placedBuildings = GameObject.FindGameObjectsWithTag("Building");
+
+        foreach (GameObject building in placedBuildings)
+        {
+            BuildingIdentity identifier = building.GetComponent<BuildingIdentity>();
+
+            saveData.buildings.Add(new BuildingData(
+                identifier.buildId,
+                building.transform.position,
+                building.transform.rotation
+                ));
+        }
+
+        string json = JsonUtility.ToJson(saveData, true);
+        string path = System.IO.Path.Combine(Application.persistentDataPath, "buildings.json");
+        System.IO.File.WriteAllText(path, json);
+    }
+
+    public void Load()
+    {
+        string path = System.IO.Path.Combine(Application.persistentDataPath, "buildings.json");
+
+        string json = System.IO.File.ReadAllText(path);
+
+        BuildingSaveData saveData = JsonUtility.FromJson<BuildingSaveData>(json);
+
+        RemoveAll();
+
+        foreach (BuildingData data in saveData.buildings)
+        {
+            GameObject prefab = buildingRegistry.GetPrefab(data.ID);
+
+            GameObject instance = Instantiate(prefab, data.position, data.rotation);
+
+            Vector3Int size = GetRotatedSize(GetFootprintSize(instance), instance.transform.rotation);
+            Vector3Int origin = WorldToCell(instance.transform.position - FootprintOffset(size));
+
+            foreach (Vector3Int c in GetCells(origin, size))
+                occupiedPositions.Add(c);
+
+            BuildManager.instance.buildCount++;
+        }
     }
 }
