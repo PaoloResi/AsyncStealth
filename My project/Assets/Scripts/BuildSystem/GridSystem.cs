@@ -372,9 +372,10 @@ public class GridSystem : MonoBehaviour
         }
     }
 
-    public void Save()
+    public void Save(int saveNum)
     {
-        BuildingSaveData saveData = new BuildingSaveData();
+        
+        BuildingDataList saveData = new BuildingDataList();
         GameObject[] placedBuildings = GameObject.FindGameObjectsWithTag("Building");
 
         foreach (GameObject building in placedBuildings)
@@ -388,18 +389,16 @@ public class GridSystem : MonoBehaviour
                 ));
         }
 
-        string json = JsonUtility.ToJson(saveData, true);
-        string path = System.IO.Path.Combine(Application.persistentDataPath, "buildings.json");
-        System.IO.File.WriteAllText(path, json);
+        GameManager.instance.savesList.Saves.Insert(saveNum, saveData);
     }
 
-    public void Load()
+    public void Load(int saveNum)
     {
-        string path = System.IO.Path.Combine(Application.persistentDataPath, "buildings.json");
+        string path = System.IO.Path.Combine(Application.persistentDataPath, "Savedbuilds.json");
 
         string json = System.IO.File.ReadAllText(path);
 
-        BuildingSaveData saveData = JsonUtility.FromJson<BuildingSaveData>(json);
+        BuildingDataList saveData = GameManager.instance.savesList.Saves[saveNum];
 
         RemoveAll();
 

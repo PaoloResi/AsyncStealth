@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using System.IO;
+using UnityEditor.Overlays;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -5,7 +8,7 @@ public class GameManager : MonoBehaviour
 {
 
     public static GameManager instance;
-
+    public SavesList savesList;
     private void Awake()
     {
         if (instance == null)
@@ -22,7 +25,20 @@ public class GameManager : MonoBehaviour
     
     void Start()
     {
-        
+        string path = System.IO.Path.Combine(Application.persistentDataPath, "Savedbuilds.json");
+
+        if (File.Exists(path))
+        {
+            string json = System.IO.File.ReadAllText(path);
+            print(json);
+            savesList = JsonUtility.FromJson<SavesList>(json);
+        }
+        else
+        {
+            string json = JsonUtility.ToJson(savesList, true);
+            System.IO.File.WriteAllText(path, json);
+        }
+
     }
 
     // Update is called once per frame
@@ -34,12 +50,5 @@ public class GameManager : MonoBehaviour
     public void loadScene (string SceneName)
     {
         SceneManager.LoadScene(SceneName);
-    }
-
-    public void ExitGame()
-    {
-        Debug.Log("gameexited");
-        Application.Quit();
-        
     }
 }

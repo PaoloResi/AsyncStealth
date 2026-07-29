@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 public class BuildManager : MonoBehaviour
 {
@@ -11,7 +12,12 @@ public class BuildManager : MonoBehaviour
 
     public static BuildManager instance;
 
+    public GameObject savePanel;
+
+    public GameObject loadPanel;
+
     [SerializeField] private GameObject buildingsCanvas;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -21,13 +27,14 @@ public class BuildManager : MonoBehaviour
             return;
         }
         instance = this;
+
         
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+
     }
 
 
@@ -48,6 +55,18 @@ public class BuildManager : MonoBehaviour
     {
         gridSystem.deleteMode = !gridSystem.deleteMode;
         buildingsCanvas.SetActive(false);
+    }
+
+    public void SavePanel()
+    {
+        if (!loadPanel.activeSelf)
+            savePanel.SetActive(!savePanel.activeSelf);
+    }
+
+    public void LoadPanel()
+    {
+        if (!savePanel.activeSelf)
+            loadPanel.SetActive(!loadPanel.activeSelf);
     }
 
 }

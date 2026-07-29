@@ -17,7 +17,13 @@ public class BuildingData
 }
 
 [Serializable]
-public class BuildingSaveData
+public class BuildingDataList
 {
     public List<BuildingData> buildings = new List<BuildingData>();
+}
+
+[Serializable]
+public class SavesList
+{
+    public List<BuildingDataList> Saves = new List<BuildingDataList>(); 
 }
