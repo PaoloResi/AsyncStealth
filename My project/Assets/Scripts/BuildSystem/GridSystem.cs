@@ -13,12 +13,12 @@ public class GridSystem : MonoBehaviour
     public bool deleteMode = false;
     public bool moveMode = false;
     [SerializeField] private GameObject hoveredObject;
-    private Color OGHoveredColor;
     [SerializeField] private GameObject buildingsCanvas;
     public InputActionReference objRotAction;
     void OnEnable() => objRotAction.action.Enable();
     void OnDisable() => objRotAction.action.Disable();
     public BuildingRegistry buildingRegistry;
+    private Dictionary<Renderer, Color> OGColors = new Dictionary<Renderer, Color>();
 
 
     public void SetObjectToPlace(GameObject objToPlace)
@@ -172,7 +172,14 @@ public class GridSystem : MonoBehaviour
     void CreateGhostObject()
     {
         ghostObject = Instantiate(objectToPlace);
-        ghostObject.GetComponent<Collider>().enabled = false;
+
+        foreach (Collider child in ghostObject.GetComponentsInChildren<Collider>())
+        {
+            child.enabled = false;
+        }
+        if (ghostObject.GetComponent<Collider>() != null)
+            ghostObject.GetComponent<Collider>().enabled = false;
+        //ghostObject.GetComponent<Collider>().enabled = false;
 
         Renderer[] renderers = ghostObject.GetComponentsInChildren<Renderer>();
 
@@ -192,7 +199,13 @@ public class GridSystem : MonoBehaviour
             mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
             mat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
         }
-        ghostObject.GetComponent<MeshRenderer>().enabled = false;
+
+        foreach (MeshRenderer child in ghostObject.GetComponentsInChildren<MeshRenderer>())
+        {
+            child.enabled = true;
+        }
+        if (ghostObject.GetComponent<MeshRenderer>() != null)
+            ghostObject.GetComponent<MeshRenderer>().enabled = true;
     }
 
     void UpdateGhostPosition()
@@ -201,7 +214,12 @@ public class GridSystem : MonoBehaviour
 
         if (Physics.Raycast(ray, out RaycastHit hit))
         {
-            ghostObject.GetComponent<MeshRenderer>().enabled = true;
+            foreach (MeshRenderer child in ghostObject.GetComponentsInChildren<MeshRenderer>())
+            {
+                child.enabled = true;
+            }
+            if (ghostObject.GetComponent<MeshRenderer>() != null)
+                ghostObject.GetComponent<MeshRenderer>().enabled = true;
             onPlane = true;
 
 
@@ -227,7 +245,12 @@ public class GridSystem : MonoBehaviour
         else
         {
             onPlane = false;
-            ghostObject.GetComponent<MeshRenderer>().enabled = false;
+            foreach (MeshRenderer child in ghostObject.GetComponentsInChildren<MeshRenderer>())
+            {
+                child.enabled = false;
+            }
+            if (ghostObject.GetComponent<MeshRenderer>() != null)
+                ghostObject.GetComponent<MeshRenderer>().enabled = false;
         }
     }
 
@@ -237,7 +260,12 @@ public class GridSystem : MonoBehaviour
 
         if (Physics.Raycast(ray, out RaycastHit hit))
         {
-            hoveredObject.GetComponent<MeshRenderer>().enabled = true;
+            foreach (MeshRenderer child in hoveredObject.GetComponentsInChildren<MeshRenderer>())
+            {
+                child.enabled = true;
+            }
+            if (hoveredObject.GetComponent<MeshRenderer>() != null)
+                hoveredObject.GetComponent<MeshRenderer>().enabled = true;
             onPlane = true;
 
 
@@ -264,7 +292,12 @@ public class GridSystem : MonoBehaviour
         else
         {
             onPlane = false;
-            hoveredObject.GetComponent<MeshRenderer>().enabled = false;
+            foreach (MeshRenderer child in hoveredObject.GetComponentsInChildren<MeshRenderer>())
+            {
+                child.enabled = false;
+            }
+            if (hoveredObject.GetComponent<MeshRenderer>() != null)
+                hoveredObject.GetComponent<MeshRenderer>().enabled = false;
         }
     }
 
@@ -277,30 +310,43 @@ public class GridSystem : MonoBehaviour
     public void highlightHover(Color color)
     {
         Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
-        if (Physics.Raycast(ray, out RaycastHit hit) && hit.transform.CompareTag("Building"))
+        if (Physics.Raycast(ray, out RaycastHit hit) && hit.transform.root.CompareTag("Building"))
         {
-            if (hoveredObject != hit.collider.gameObject)
+            GameObject root = hit.transform.root.gameObject;
+           
+            if (hoveredObject != root)
             {
-                if (hoveredObject)
-                {
-                    SetColor(OGHoveredColor);
-                }
+                if (hoveredObject) restoreColors();
 
-                hoveredObject = hit.collider.gameObject;
-
-                OGHoveredColor = hoveredObject.GetComponentInChildren<Renderer>().material.color;
+                hoveredObject = root;
+                cacheColors();        
                 SetColor(color);
             }
+            
         }
-        else
+        else if (hoveredObject)
         {
-            if (hoveredObject)
-            {
-                SetColor(OGHoveredColor);
-                hoveredObject = null;
-            }
+            restoreColors();
+            hoveredObject = null;
         }
 
+    }
+
+    void cacheColors()
+    {
+        OGColors.Clear();
+        foreach (Renderer r in hoveredObject.GetComponentsInChildren<Renderer>())
+            OGColors[r] = r.material.color;
+    }
+
+    void restoreColors()
+    {
+        foreach (var KeyValue in OGColors)
+        {
+            if (KeyValue.Key != null)
+                KeyValue.Key.material.color = KeyValue.Value;
+        }
+        OGColors.Clear();
     }
 
     void SetColor(Color color)
