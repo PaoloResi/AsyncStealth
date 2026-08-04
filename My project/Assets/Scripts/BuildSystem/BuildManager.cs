@@ -5,7 +5,7 @@ public class BuildManager : MonoBehaviour
 {
 
     [SerializeField] private GameObject StartBuildingButton;
-    private int maxBuilds = 100;
+    //private int maxBuilds = 100;
     public int buildCount = 0;
 
     public GridSystem gridSystem;
@@ -21,14 +21,17 @@ public class BuildManager : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        if (instance)
-        {
-            DestroyImmediate(gameObject);
-            return;
-        }
-        instance = this;
 
-        
+        if (instance == null)
+        {
+            instance = this;
+        }
+        else if (instance != this)
+        {
+            Destroy(this);
+        }
+
+
     }
 
     // Update is called once per frame

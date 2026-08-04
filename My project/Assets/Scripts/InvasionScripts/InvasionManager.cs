@@ -6,6 +6,7 @@ public class InvasionManager : MonoBehaviour
 
     public BuildingRegistry buildingRegistry;
     public float gridSize = 1f;
+    public static InvasionManager instance;
     public GameObject playerPrefab;
     public GameObject UIcam;
     public GameObject playerSpawnPoint;
@@ -15,7 +16,15 @@ public class InvasionManager : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        
+
+        if (instance == null)
+        {
+            instance = this;
+        }
+        else if (instance != this)
+        {
+            Destroy(this);
+        }
     }
 
     // Update is called once per frame

@@ -1,11 +1,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using static UnityEngine.UI.Image;
 
 public class GridSystem : MonoBehaviour
 {
     public GameObject objectToPlace;
-    public float gridSize = 1f;
+    public float gridSize = 1.5f;
     private GameObject ghostObject;
     private HashSet<Vector3Int> occupiedPositions = new HashSet<Vector3Int>();
     public bool placingMode = false;
@@ -45,44 +46,64 @@ public class GridSystem : MonoBehaviour
         );
 
 
-    Vector3Int GetFootprintSize(GameObject obj)
+    List<Vector3Int> GetFootprintSize(GameObject obj)
     {
         MeshFilter[] filters = obj.GetComponentsInChildren<MeshFilter>();
-        if (filters.Length == 0) return Vector3Int.one;
+        HashSet<Vector3Int> cells = new HashSet<Vector3Int>();
+        foreach (MeshFilter filter in filters)
+        {
+            Bounds localBounds = filter.sharedMesh.bounds;
 
-        Bounds local = filters[0].sharedMesh.bounds;
+            Vector3 localCenter = obj.transform.InverseTransformPoint(filter.transform.TransformPoint(localBounds.center));
+            Vector3 worldSize = Vector3.Scale(localBounds.size, filter.transform.lossyScale);
 
-        for (int i = 1; i < filters.Length; i++)
-            local.Encapsulate(filters[i].sharedMesh.bounds);
+            
+            int sizeX = Mathf.Max(1, Mathf.CeilToInt(worldSize.x / gridSize));
+            int sizeY = Mathf.Max(1, Mathf.CeilToInt(worldSize.y / gridSize));
+            int sizeZ = Mathf.Max(1, Mathf.CeilToInt(worldSize.z / gridSize));
 
-        Vector3 scaled = Vector3.Scale(local.size, obj.transform.lossyScale);
+            Vector3Int baseCell = new Vector3Int
+                (
+                Mathf.RoundToInt(localCenter.x / gridSize), 
+                Mathf.RoundToInt(localCenter.y / gridSize), 
+                Mathf.RoundToInt(localCenter.z / gridSize)
+                );
 
-        return new Vector3Int(
-            Mathf.Max(1, Mathf.CeilToInt(scaled.x / gridSize - 0.01f)),
-            Mathf.Max(1, Mathf.CeilToInt(scaled.y / gridSize - 0.01f)),
-            Mathf.Max(1, Mathf.CeilToInt(scaled.z / gridSize - 0.01f))
-            );
+            for (int x = 0; x < sizeX; x++)
+                for (int y = 0; y < sizeY; y++)
+                    for (int z = 0; z < sizeZ; z++)
+                        cells.Add(baseCell + new Vector3Int(x, y, z));
+        }
 
+        return new List<Vector3Int>(cells);
     }
 
-    Vector3Int GetRotatedSize(Vector3Int size, Quaternion rot)
+    List<Vector3Int > GetRotatedSize(List<Vector3Int> localCells, Quaternion rot)
     {
-        int steps = Mathf.RoundToInt(rot.eulerAngles.y / 90f) & 3;
-        if (steps % 2 == 1)
-            return new Vector3Int (size.z, size.y, size.x);
-        return size;
+        int steps = (Mathf.RoundToInt(rot.eulerAngles.y/90f) % 4 + 4) % 4;
+        List<Vector3Int> result = new List<Vector3Int>(localCells.Count);
 
+        foreach (Vector3Int cell in localCells)
+        {
+            Vector3Int rotatedCell = cell;
+            for (int i = 0; i < steps; i++)
+            {
+                rotatedCell = new Vector3Int(rotatedCell.z, rotatedCell.y, -rotatedCell.x);
+            }
+            result.Add(rotatedCell);
+        }
+        return result;
     }
 
-    IEnumerable<Vector3Int> GetCells(Vector3Int origin, Vector3Int size)
+    IEnumerable<Vector3Int> GetCells(Vector3Int origin, List<Vector3Int> size)
     {
-        for (int x = 0; x < size.x; x++)
-            for (int y = 0; y < size.y; y++)
-                for (int z = 0; z < size.z; z++)
-                    yield return new Vector3Int(origin.x + x, origin.y + y, origin.z + z);
+       foreach (Vector3Int cell in size)
+        {
+            yield return origin + cell;
+        }
     }
 
-    bool AreCellsFree(Vector3Int origin, Vector3Int size)
+    bool AreCellsFree(Vector3Int origin, List<Vector3Int> size)
     {
         foreach (Vector3Int c in GetCells(origin, size))
             if (occupiedPositions.Contains(c))
@@ -90,13 +111,21 @@ public class GridSystem : MonoBehaviour
         return true;
     }
 
-    Vector3 FootprintOffset(Vector3Int size)
+    Vector3 FootprintOffset(List<Vector3Int> relativeCells)
     {
-        return new Vector3(
-            (size.x -1) * gridSize * 0.5f,
-            0f,
-            (size.z - 1) * gridSize * 0.5f
-        );
+        int minX = int.MaxValue, maxX = int.MinValue;
+        int minZ = int.MaxValue, maxZ = int.MinValue;
+
+        foreach (Vector3Int cell in relativeCells)
+        {
+            minX = Mathf.Min(minX, cell.x);
+            maxX = Mathf.Max(maxX, cell.x);
+
+            minZ = Mathf.Min(minZ, cell.z);
+            maxZ = Mathf.Max(maxZ, cell.z);
+        }
+
+        return new Vector3((minX + maxX) * gridSize * 0.5f, 0f, (minZ + maxZ) * gridSize * 0.5f);
     }
 
 
@@ -148,7 +177,7 @@ public class GridSystem : MonoBehaviour
                     moveMode = !moveMode;
                     hoveredObject.GetComponent<Collider>().enabled = !hoveredObject.GetComponent<Collider>().enabled;
 
-                    Vector3Int size = GetRotatedSize(GetFootprintSize(hoveredObject), hoveredObject.transform.rotation);
+                    List<Vector3Int> size = GetRotatedSize(GetFootprintSize(hoveredObject), hoveredObject.transform.rotation);
                     Vector3Int origin = WorldToCell(hoveredObject.transform.position - FootprintOffset(size));
 
                     foreach (Vector3Int c in GetCells(origin, size))
@@ -223,12 +252,13 @@ public class GridSystem : MonoBehaviour
             onPlane = true;
 
 
-            Vector3Int size = GetRotatedSize(GetFootprintSize(ghostObject), ghostObject.transform.rotation);
-            Vector3Int origin = WorldToCell(hit.point);
+            List<Vector3Int> size = GetRotatedSize(GetFootprintSize(ghostObject), ghostObject.transform.rotation);
+            Vector3 targetPos = hit.point;
+            Vector3Int origin = WorldToCell(targetPos - FootprintOffset(size));
 
             ghostObject.transform.position = CellToWorld(origin) + FootprintOffset(size);
 
-            
+
             if (AreCellsFree(origin, size))
                 SetColor(new Color(1f, 1f, 1f, 0.5f));
             else
@@ -269,8 +299,9 @@ public class GridSystem : MonoBehaviour
             onPlane = true;
 
 
-            Vector3Int size = GetRotatedSize(GetFootprintSize(hoveredObject), hoveredObject.transform.rotation);
-            Vector3Int origin = WorldToCell(hit.point);
+            List<Vector3Int> size = GetRotatedSize(GetFootprintSize(hoveredObject), hoveredObject.transform.rotation);
+            Vector3 targetPos = hit.point;
+            Vector3Int origin = WorldToCell(targetPos - FootprintOffset(size));
 
             hoveredObject.transform.position = CellToWorld(origin) + FootprintOffset(size);
 
@@ -373,8 +404,7 @@ public class GridSystem : MonoBehaviour
         Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
         if (Physics.Raycast(ray, out RaycastHit hit) && hit.transform.CompareTag("Ground"))
         {
-            Vector3Int size = GetRotatedSize(
-            GetFootprintSize(ghostObject), ghostObject.transform.rotation);
+            List<Vector3Int> size = GetRotatedSize(GetFootprintSize(ghostObject), ghostObject.transform.rotation);
             Vector3Int origin = WorldToCell(ghostObject.transform.position - FootprintOffset(size));
 
             if (AreCellsFree(origin, size))
@@ -389,8 +419,7 @@ public class GridSystem : MonoBehaviour
 
     void RemoveObject()
     {
-        Vector3Int size = GetRotatedSize(
-            GetFootprintSize(hoveredObject), hoveredObject.transform.rotation);
+        List<Vector3Int> size = GetRotatedSize(GetFootprintSize(hoveredObject), hoveredObject.transform.rotation);
         Vector3Int origin = WorldToCell(hoveredObject.transform.position - FootprintOffset(size));
 
         Destroy(hoveredObject);
@@ -406,8 +435,7 @@ public class GridSystem : MonoBehaviour
 
         foreach (GameObject i in placedBuildings)
         {
-            Vector3Int size = GetRotatedSize(
-            GetFootprintSize(i), i.transform.rotation);
+            List<Vector3Int> size = GetRotatedSize(GetFootprintSize(i), i.transform.rotation);
             Vector3Int origin = WorldToCell(i.transform.position - FootprintOffset(size));
 
             Destroy(i);
@@ -454,7 +482,7 @@ public class GridSystem : MonoBehaviour
 
             GameObject instance = Instantiate(prefab, data.position, data.rotation);
 
-            Vector3Int size = GetRotatedSize(GetFootprintSize(instance), instance.transform.rotation);
+            List<Vector3Int> size = GetRotatedSize(GetFootprintSize(instance), instance.transform.rotation);
             Vector3Int origin = WorldToCell(instance.transform.position - FootprintOffset(size));
 
             foreach (Vector3Int c in GetCells(origin, size))
@@ -463,4 +491,14 @@ public class GridSystem : MonoBehaviour
             BuildManager.instance.buildCount++;
         }
     }
+
+    void OnDrawGizmos()
+    {
+        Gizmos.color = Color.green;
+        for (float x = -5f; x <= 5f; x += gridSize)
+            Gizmos.DrawLine(new Vector3(x, 0, -5f), new Vector3(x, 0, 5f));
+        for (float z = -5f; z <= 5f; z += gridSize)
+            Gizmos.DrawLine(new Vector3(-5f, 0, z), new Vector3(5f, 0, z));
+    }
+
 }
