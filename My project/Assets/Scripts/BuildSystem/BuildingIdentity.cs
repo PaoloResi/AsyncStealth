@@ -13,4 +13,5 @@ public class BuildingIdentity : MonoBehaviour
 {
     public string buildId;
     [SerializeField] public List<BuildingPiece> locInfo = new List<BuildingPiece>();
+    public int rotation = 0;
 }
