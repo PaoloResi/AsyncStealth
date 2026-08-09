@@ -2,7 +2,7 @@ using StarterAssets;
 using System;
 public class locomotionState : BaseState
 {
-    public locomotionState(ThirdPersonController enemyController) : base(playerController)
+    public locomotionState(ThirdPersonController enemyController) : base(enemyController)
     {
     }
 

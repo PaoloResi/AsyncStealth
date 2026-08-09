@@ -7,6 +7,7 @@ public class GridSystem : MonoBehaviour
     public GameObject objectToPlace;
     public float gridSize = 1f;
     private GameObject ghostObject;
+    private PatrolIdentity prevPatrolPoint = null;
     private HashSet<Vector3> occupiedPositions = new HashSet<Vector3>();
     public bool placingMode = false;
     public bool onPlane = false;
@@ -344,6 +345,7 @@ public class GridSystem : MonoBehaviour
     {
         Destroy(ghostObject);
         ghostObject = null;
+        prevPatrolPoint = null;
     }
 
     public void highlightHover(Color color)
@@ -434,6 +436,28 @@ public class GridSystem : MonoBehaviour
                 BuildManager.instance.buildCount++;
             }
         }
+        if (objectToPlace.transform.GetComponent<PatrolIdentity>() != null)
+        {
+            if (prevPatrolPoint != null)
+            {
+                prevPatrolPoint.nextPoint = objectToPlace.transform.GetComponent<PatrolIdentity>();
+                objectToPlace.transform.GetComponent<PatrolIdentity>().previousPoint = prevPatrolPoint;
+            }
+
+            if (prevPatrolPoint.nextPoint != null)
+            {
+                print("previous patrol point reference to next point is not null");
+            }
+
+            if (objectToPlace.transform.GetComponent<PatrolIdentity>().previousPoint != null)
+            {
+                print("current patrol point reference to previous point is not null");
+            }
+
+            prevPatrolPoint = objectToPlace.transform.GetComponent<PatrolIdentity>();
+        }
+        
+        
 }
 
     void RemoveObject()
@@ -443,6 +467,19 @@ public class GridSystem : MonoBehaviour
 
         foreach (Vector3 c in GetCells(WorldToCell(hoveredObject.transform.position), size, rotation))
             occupiedPositions.Remove(c);
+
+        PatrolIdentity previousPatrolIdentity = hoveredObject.GetComponent<PatrolIdentity>().previousPoint;
+        PatrolIdentity nextPatrolIdentity = hoveredObject.GetComponent<PatrolIdentity>().nextPoint;
+
+        if (previousPatrolIdentity != null)
+        {
+            previousPatrolIdentity.nextPoint = nextPatrolIdentity;
+        }
+
+        if (nextPatrolIdentity != null)
+        {
+            nextPatrolIdentity.previousPoint = previousPatrolIdentity;
+        }
 
         Destroy(hoveredObject);
         BuildManager.instance.buildCount--;
