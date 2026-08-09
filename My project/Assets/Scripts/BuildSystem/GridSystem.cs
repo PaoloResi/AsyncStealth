@@ -50,11 +50,7 @@ public class GridSystem : MonoBehaviour
         BuildingIdentity objInfo = objToPlace.GetComponent<BuildingIdentity>();
 
         List<BuildingPiece> locInfo = objInfo.locInfo;
-        //foreach (BuildingPiece piece in locInfo)
-        //{
-        //    print(piece.size);
-        //}
-
+       
         return locInfo;
     }
 

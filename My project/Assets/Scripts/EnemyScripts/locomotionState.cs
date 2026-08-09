@@ -6,12 +6,12 @@ public class locomotionState : BaseState
     {
     }
 
-    public override void OnEnter()
+    public override void OnEnter() 
     {
         //call anything
     }
 
-    public override void FixedUpdate()
+    public override void FixedUpdate()  
     {
         // add better patrol logic
         enemyController.Move();
