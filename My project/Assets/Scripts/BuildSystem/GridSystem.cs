@@ -107,13 +107,7 @@ public class GridSystem : MonoBehaviour
             }
         }
 
-        //foreach (Vector3 c in cells)
-        //{
-        //    print(c);
-        //}
-
-
-        return cells;
+       return cells;
     }
 
     bool AreCellsFree(Vector3 origin, List<BuildingPiece> objInfoList, int rotation)
@@ -134,7 +128,6 @@ public class GridSystem : MonoBehaviour
             {
                 CreateGhostObject();
             }
-            UpdateGhostPosition();
             if (Mouse.current.leftButton.wasPressedThisFrame && onPlane)
                 PlaceObject();
             if (Mouse.current.rightButton.wasPressedThisFrame)
@@ -142,6 +135,8 @@ public class GridSystem : MonoBehaviour
                 setPlaceMode();
                 StopGhostPosition();
             }
+            UpdateGhostPosition();
+
         }
         else if (deleteMode)
         {
@@ -200,13 +195,19 @@ public class GridSystem : MonoBehaviour
     {
         ghostObject = Instantiate(objectToPlace);
 
+        var ghostPatrol = ghostObject.GetComponent<PatrolIdentity>();
+        if (ghostPatrol != null)
+        {
+            ghostPatrol.previousPoint = null;
+            ghostPatrol.nextPoint = null;
+        }
+
         foreach (Collider child in ghostObject.GetComponentsInChildren<Collider>())
         {
             child.enabled = false;
         }
         if (ghostObject.GetComponent<Collider>() != null)
             ghostObject.GetComponent<Collider>().enabled = false;
-        //ghostObject.GetComponent<Collider>().enabled = false;
 
         Renderer[] renderers = ghostObject.GetComponentsInChildren<Renderer>();
 
@@ -233,6 +234,8 @@ public class GridSystem : MonoBehaviour
         }
         if (ghostObject.GetComponent<MeshRenderer>() != null)
             ghostObject.GetComponent<MeshRenderer>().enabled = true;
+
+        
     }
 
     void UpdateGhostPosition()
@@ -412,6 +415,7 @@ public class GridSystem : MonoBehaviour
     void PlaceObject()
     {
         Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
+        GameObject placed = null;
         if (Physics.Raycast(ray, out RaycastHit hit) && hit.transform.CompareTag("Ground"))
         {
             List<BuildingPiece> objInfoList = GetObjectSize(ghostObject);
@@ -420,44 +424,32 @@ public class GridSystem : MonoBehaviour
 
             if (AreCellsFree(origin, objInfoList, rotation))
             {
-                GameObject placed = Instantiate(objectToPlace, CellToWorld(origin), ghostObject.transform.rotation);
+                placed = Instantiate(objectToPlace, CellToWorld(origin), ghostObject.transform.rotation);
                 BuildingIdentity ghostID = ghostObject.GetComponent<BuildingIdentity>();
                 BuildingIdentity placedID = placed.GetComponent<BuildingIdentity>();
                 placedID.rotation = ghostID.rotation;
                 placedID.locInfo = ghostID.locInfo;
                 placedID.rotation = ghostID.rotation;
 
-                print("origin = " + origin);
                 foreach (Vector3 c in GetCells(origin, objInfoList, rotation))
                 {
-                    print(c);
                     occupiedPositions.Add(c);
                 }
                 BuildManager.instance.buildCount++;
             }
+
+            if (placed.transform.GetComponent<PatrolIdentity>() != null)
+            {
+                if (prevPatrolPoint != null)
+                {
+                    prevPatrolPoint.nextPoint = placed.transform.GetComponent<PatrolIdentity>();
+                    placed.transform.GetComponent<PatrolIdentity>().previousPoint = prevPatrolPoint;
+                }
+
+                prevPatrolPoint = placed.transform.GetComponent<PatrolIdentity>();
+            }
         }
-        if (objectToPlace.transform.GetComponent<PatrolIdentity>() != null)
-        {
-            if (prevPatrolPoint != null)
-            {
-                prevPatrolPoint.nextPoint = objectToPlace.transform.GetComponent<PatrolIdentity>();
-                objectToPlace.transform.GetComponent<PatrolIdentity>().previousPoint = prevPatrolPoint;
-            }
-
-            if (prevPatrolPoint.nextPoint != null)
-            {
-                print("previous patrol point reference to next point is not null");
-            }
-
-            if (objectToPlace.transform.GetComponent<PatrolIdentity>().previousPoint != null)
-            {
-                print("current patrol point reference to previous point is not null");
-            }
-
-            prevPatrolPoint = objectToPlace.transform.GetComponent<PatrolIdentity>();
-        }
-        
-        
+  
 }
 
     void RemoveObject()
@@ -467,18 +459,20 @@ public class GridSystem : MonoBehaviour
 
         foreach (Vector3 c in GetCells(WorldToCell(hoveredObject.transform.position), size, rotation))
             occupiedPositions.Remove(c);
-
-        PatrolIdentity previousPatrolIdentity = hoveredObject.GetComponent<PatrolIdentity>().previousPoint;
-        PatrolIdentity nextPatrolIdentity = hoveredObject.GetComponent<PatrolIdentity>().nextPoint;
-
-        if (previousPatrolIdentity != null)
+        if (hoveredObject.GetComponent<PatrolIdentity>() != null)
         {
-            previousPatrolIdentity.nextPoint = nextPatrolIdentity;
-        }
+            PatrolIdentity previousPatrolIdentity = hoveredObject.GetComponent<PatrolIdentity>().previousPoint;
+            PatrolIdentity nextPatrolIdentity = hoveredObject.GetComponent<PatrolIdentity>().nextPoint;
 
-        if (nextPatrolIdentity != null)
-        {
-            nextPatrolIdentity.previousPoint = previousPatrolIdentity;
+            if (previousPatrolIdentity != null)
+            {
+                previousPatrolIdentity.nextPoint = nextPatrolIdentity;
+            }
+
+            if (nextPatrolIdentity != null)
+            {
+                nextPatrolIdentity.previousPoint = previousPatrolIdentity;
+            }
         }
 
         Destroy(hoveredObject);

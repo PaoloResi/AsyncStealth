@@ -30,7 +30,6 @@ public class GameManager : MonoBehaviour
         if (File.Exists(path))
         {
             string json = System.IO.File.ReadAllText(path);
-            print(json);
             savesList = JsonUtility.FromJson<SavesList>(json);
         }
         else
