@@ -2,9 +2,9 @@ using StarterAssets;
 
 public abstract class BaseState : IState
 {
-    protected readonly ThirdPersonController enemyController;
+    protected readonly EnemyController enemyController;
 
-    protected BaseState(ThirdPersonController enemyController)
+    protected BaseState(EnemyController enemyController)
     {
         this.enemyController = enemyController;
     }
