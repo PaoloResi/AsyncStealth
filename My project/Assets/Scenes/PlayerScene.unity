@@ -197,11 +197,11 @@ MonoBehaviour:
   buildingRegistry: {fileID: 11400000, guid: 8611640962fc7d94395d8ea48706d185, type: 2}
   gridSize: 1
   playerPrefab: {fileID: 3251521048261243619, guid: 8af6d4d586113c04eaeef9baa308c8a7, type: 3}
-  enemyPrefab: {fileID: 0}
+  enemyPrefab: {fileID: 5099302634467425260, guid: edc703493ec58e64abf8d2c7ae367156, type: 3}
   UIcam: {fileID: 958114155}
   playerSpawnPoint: {fileID: 24788104}
   canvas: {fileID: 1804018788}
-  patrolFinder: {fileID: 0}
+  patrolFinder: {fileID: 1571811848}
 --- !u!1 &231218653
 GameObject:
   m_ObjectHideFlags: 0
@@ -1057,8 +1057,8 @@ Transform:
   m_GameObject: {fileID: 794245227}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -10}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 1, y: 1, z: -14}
+  m_LocalScale: {x: 1.5, y: 1, z: 1.5}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 24788105}
@@ -1510,6 +1510,50 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -4.03303, y: 0, z: 0.61358}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1571811847
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1571811849}
+  - component: {fileID: 1571811848}
+  m_Layer: 0
+  m_Name: PatrolFinder
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1571811848
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1571811847}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 588a208c4c0836243a92c31e26def51b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PatrolFinder
+--- !u!4 &1571811849
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1571811847}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 16.63946, y: -0, z: -1.51897}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2222,8 +2266,8 @@ Transform:
   m_GameObject: {fileID: 1912654432}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1.5, y: 1, z: 1.5}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -2802,3 +2846,4 @@ SceneRoots:
   - {fileID: 1466673381}
   - {fileID: 1804018792}
   - {fileID: 1910833772}
+  - {fileID: 1571811849}

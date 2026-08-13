@@ -2,6 +2,8 @@ using UnityEngine;
 
 public class PatrolIdentity : BuildingIdentity
 {
-    public PatrolIdentity previousPoint = null;
-    public PatrolIdentity nextPoint = null;
+    public string RouteID;
+    public string PointID;
+    public string previousPoint = null;
+    public string nextPoint = null;
 }

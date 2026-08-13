@@ -48,7 +48,7 @@ public class EnemyController : MonoBehaviour
         enemyCapsuleCollider = GetComponentInChildren<Collider>();
     }
 
-    public void SetPatrol(PatrolIdentity startPoint)
+    public void SetPatrol(PatrolIdentity startPoint, Dictionary<string, PatrolIdentity> patrolPointDictionary)
     {
         patrolPoints.Clear();
         if (startPoint == null) return;
@@ -59,7 +59,7 @@ public class EnemyController : MonoBehaviour
 
         while (currentPoint.nextPoint != null)
         {
-            currentPoint = currentPoint.nextPoint;
+            currentPoint = patrolPointDictionary.TryGetValue(currentPoint.nextPoint, out PatrolIdentity next) ? next : null;
             patrolPoints.Add(currentPoint);
         }
 

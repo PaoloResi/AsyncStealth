@@ -20,6 +20,9 @@ public class GridSystem : MonoBehaviour
     void OnDisable() => objRotAction.action.Disable();
     public BuildingRegistry buildingRegistry;
     private Dictionary<Renderer, Color> OGColors = new Dictionary<Renderer, Color>();
+    private Dictionary<string, PatrolIdentity> PatrolPointDic = new Dictionary<string, PatrolIdentity>();
+    private string routeValue = "A";
+    private int pointValue = 0;
 
 
     public void SetObjectToPlace(GameObject objToPlace)
@@ -349,6 +352,8 @@ public class GridSystem : MonoBehaviour
         Destroy(ghostObject);
         ghostObject = null;
         prevPatrolPoint = null;
+        routeValue = ((char)(routeValue[0] + 1)).ToString();
+        pointValue = 0;
     }
 
     public void highlightHover(Color color)
@@ -440,10 +445,16 @@ public class GridSystem : MonoBehaviour
 
             if (placed.transform.GetComponent<PatrolIdentity>() != null)
             {
+                PatrolPointDic.Add(routeValue + pointValue, placed.transform.GetComponent<PatrolIdentity>());
+                placed.transform.GetComponent<PatrolIdentity>().RouteID = routeValue;
+                placed.transform.GetComponent<PatrolIdentity>().PointID = pointValue.ToString();
+                print(placed.transform.GetComponent<PatrolIdentity>().RouteID + placed.transform.GetComponent<PatrolIdentity>().PointID);
+                pointValue += 1;
                 if (prevPatrolPoint != null)
                 {
-                    prevPatrolPoint.nextPoint = placed.transform.GetComponent<PatrolIdentity>();
-                    placed.transform.GetComponent<PatrolIdentity>().previousPoint = prevPatrolPoint;
+                    prevPatrolPoint.nextPoint = placed.transform.GetComponent<PatrolIdentity>().RouteID 
+                        + placed.transform.GetComponent<PatrolIdentity>().PointID;
+                    placed.transform.GetComponent<PatrolIdentity>().previousPoint = prevPatrolPoint.RouteID + prevPatrolPoint.PointID;
                 }
 
                 prevPatrolPoint = placed.transform.GetComponent<PatrolIdentity>();
@@ -461,17 +472,17 @@ public class GridSystem : MonoBehaviour
             occupiedPositions.Remove(c);
         if (hoveredObject.GetComponent<PatrolIdentity>() != null)
         {
-            PatrolIdentity previousPatrolIdentity = hoveredObject.GetComponent<PatrolIdentity>().previousPoint;
-            PatrolIdentity nextPatrolIdentity = hoveredObject.GetComponent<PatrolIdentity>().nextPoint;
+            PatrolIdentity previousPatrolIdentity = PatrolPointDic.TryGetValue(hoveredObject.GetComponent<PatrolIdentity>().previousPoint, out PatrolIdentity prev) ? prev : null;
+            PatrolIdentity nextPatrolIdentity = PatrolPointDic.TryGetValue(hoveredObject.GetComponent<PatrolIdentity>().nextPoint, out PatrolIdentity next) ? next : null;
 
             if (previousPatrolIdentity != null)
             {
-                previousPatrolIdentity.nextPoint = nextPatrolIdentity;
+                previousPatrolIdentity.nextPoint = nextPatrolIdentity.RouteID + nextPatrolIdentity.PointID;
             }
 
             if (nextPatrolIdentity != null)
             {
-                nextPatrolIdentity.previousPoint = previousPatrolIdentity;
+                nextPatrolIdentity.previousPoint = previousPatrolIdentity.RouteID + previousPatrolIdentity.PointID;
             }
         }
 
@@ -504,21 +515,39 @@ public class GridSystem : MonoBehaviour
 
         foreach (GameObject building in placedBuildings)
         {
-            BuildingIdentity identifier = building.GetComponent<BuildingIdentity>();
+            if (building.GetComponent<PatrolIdentity>() != null)
+            {
+                PatrolIdentity identifier = building.GetComponent<PatrolIdentity>();
+                saveData.buildings.Add(new PatrolData(
+                    identifier.buildId,
+                    building.transform.position,
+                    building.transform.rotation,
+                    identifier.RouteID,
+                    identifier.PointID,
+                    identifier.previousPoint != null ? identifier.previousPoint : null,
+                    identifier.nextPoint != null ? identifier.nextPoint : null
+                    ));
+            }
+            else
+            {
+                BuildingIdentity identifier = building.GetComponent<BuildingIdentity>();
 
-            saveData.buildings.Add(new BuildingData(
-                identifier.buildId,
-                building.transform.position,
-                building.transform.rotation
-                ));
+                saveData.buildings.Add(new BuildingData(
+                    identifier.buildId,
+                    building.transform.position,
+                    building.transform.rotation
+                    ));
+            }
+
         }
-
         GameManager.instance.savesList.Saves.Insert(saveNum, saveData);
     }
 
     public void Load(int saveNum)
     {
         string path = System.IO.Path.Combine(Application.persistentDataPath, "Savedbuilds.json");
+
+        //print(path);
 
         string json = System.IO.File.ReadAllText(path);
 

@@ -23,6 +23,11 @@ public class PatrolFinder : MonoBehaviour
             }
         }
 
+        foreach (PatrolIdentity startPoint in allPatrolPoints)
+        {
+            print(startPoint);
+        }
+
         return startPoints;
     }
 }
