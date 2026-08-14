@@ -64,11 +64,10 @@ public class InvasionManager : MonoBehaviour
                     instance.GetComponent<PatrolIdentity>());
                 instance.GetComponentInChildren<MeshRenderer>().enabled = false;
                 instance.GetComponentInChildren<SphereCollider>().enabled = false;
-                SpawnEnemies();
             }
           
         }
-
+        SpawnEnemies();
         Instantiate(playerPrefab, playerSpawnPoint.transform.position, playerSpawnPoint.transform.rotation);
         UIcam.SetActive(false);
         canvas.SetActive(false);
