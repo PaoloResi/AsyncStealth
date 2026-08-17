@@ -5,37 +5,6 @@ using UnityEngine.AI;
 public class EnemyController : MonoBehaviour
 {
 
-    [Tooltip("Move speed of the character in m/s")]
-    public float MoveSpeed = 2.0f;
-    public float oldMoveSpeed;
-
-    [Tooltip("Sprint speed of the character in m/s")]
-    public float SprintSpeed = 5.335f;
-    public float oldSprintSpeed;
-
-    [Tooltip("How fast the character turns to face movement direction")]
-    [Range(0.0f, 0.3f)]
-    public float RotationSmoothTime = 0.12f;
-
-    [Tooltip("Acceleration and deceleration")]
-    public float SpeedChangeRate = 10.0f;
-
-    [Tooltip("The character uses its own gravity value. The engine default is -9.81f")]
-    public float Gravity = -15.0f;
-
-    [Header("Player Grounded")]
-    [Tooltip("If the character is grounded or not. Not part of the CharacterController built in grounded check")]
-    public bool Grounded = true;
-
-    [Tooltip("Useful for rough ground")]
-    public float GroundedOffset = -0.14f;
-
-    [Tooltip("The radius of the grounded check. Should match the radius of the CharacterController")]
-    public float GroundedRadius = 0.28f;
-
-    [Tooltip("What layers the character uses as ground")]
-    public LayerMask GroundLayers;
-
     private CharacterController _controller;
     private Collider enemyCapsuleCollider;
     private NavMeshAgent agent;
@@ -56,6 +25,10 @@ public class EnemyController : MonoBehaviour
     public float sightRange, attackRange;
     public bool playerInSightRange, playerInAttackRange;
 
+    public RaycastHit sightHit;
+
+    public RaycastHit attackHit;
+
 
 
 
@@ -70,9 +43,23 @@ public class EnemyController : MonoBehaviour
 
     private void Update()
     {
-        playerInSightRange = Physics.CheckSphere(transform.position, sightRange, whatIsPlayer);
-        playerInAttackRange = Physics.CheckSphere(transform.position, attackRange, whatIsPlayer);
+        //playerInSightRange = Physics.CheckSphere(transform.position, sightRange, whatIsPlayer);
+        //playerInAttackRange = Physics.CheckSphere(transform.position, attackRange, whatIsPlayer);
 
+        Debug.DrawRay(transform.position, transform.forward * sightRange, Color.red);
+        Physics.Raycast(transform.position, transform.forward, out sightHit, sightRange);
+        if (sightHit.collider == null) playerInSightRange = false;
+        else if (sightHit.transform.parent.gameObject == player.gameObject) playerInSightRange = true;
+        else
+        {
+            print(sightHit.transform.parent.gameObject.name);
+            playerInSightRange = false;
+        }
+
+        Physics.Raycast(transform.position, transform.forward, out attackHit, attackRange);
+        if (attackHit.collider == null) playerInAttackRange = false;    
+        else if (attackHit.transform.parent.gameObject == player.gameObject) playerInAttackRange = true;
+        else playerInAttackRange = false;
 
         if (!playerInSightRange && !playerInAttackRange) Move();
         if (playerInSightRange && !playerInAttackRange) ChasePlayer();
@@ -132,8 +119,8 @@ public class EnemyController : MonoBehaviour
 
         if (!alreadyAttacked)
         {
-            Instantiate(projectile, transform.position, Quaternion.identity).GetComponent<Rigidbody>();
-
+            //Instantiate(projectile, transform.position, Quaternion.identity).GetComponent<Rigidbody>();
+            //print("attacked player");
             alreadyAttacked = true;
             Invoke(nameof(ResetAttack), timeBetweenAttack);
         }
