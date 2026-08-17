@@ -49,24 +49,26 @@ public class InvasionManager : MonoBehaviour
         {
             GameObject prefab = buildingRegistry.GetPrefab(data.ID);
             GameObject instance = Instantiate(prefab, data.position, data.rotation);
-            print(data);
-            if (data is PatrolData patrolData)
-            {
-                PatrolData x = (PatrolData)data;
-                PatrolIdentity identity = instance.GetComponent<PatrolIdentity>();
-                //print("type is correct");
-                identity.previousPoint = x.previousPointID;
-                identity.nextPoint = x.nextPointID;
-                identity.RouteID = x.RouteID;
-                identity.PointID = x.PointID;
-                print(instance.GetComponent<PatrolIdentity>().RouteID + instance.GetComponent<PatrolIdentity>().PointID);
-                patrolPointsDic.Add(instance.GetComponent<PatrolIdentity>().RouteID + instance.GetComponent<PatrolIdentity>().PointID,
-                    instance.GetComponent<PatrolIdentity>());
-                instance.GetComponentInChildren<MeshRenderer>().enabled = false;
-                instance.GetComponentInChildren<SphereCollider>().enabled = false;
-            }
-          
+             
         }
+
+        foreach (PatrolData data in saveData.patrols)
+        {
+            GameObject prefab = buildingRegistry.GetPrefab(data.ID);
+            Vector3 enemySpawn = new Vector3(data.position.x, data.position.y + 1f, data.position.z);
+            GameObject instance = Instantiate(prefab, enemySpawn, data.rotation);
+            PatrolData x = (PatrolData)data;
+            PatrolIdentity identity = instance.GetComponent<PatrolIdentity>();
+            identity.previousPoint = x.previousPointID;
+            identity.nextPoint = x.nextPointID;
+            identity.RouteID = x.RouteID;
+            identity.PointID = x.PointID;
+            patrolPointsDic.Add(instance.GetComponent<PatrolIdentity>().RouteID + instance.GetComponent<PatrolIdentity>().PointID,
+                instance.GetComponent<PatrolIdentity>());
+            instance.GetComponentInChildren<MeshRenderer>().enabled = false;
+            instance.GetComponentInChildren<SphereCollider>().enabled = false;
+        }
+
         SpawnEnemies();
         Instantiate(playerPrefab, playerSpawnPoint.transform.position, playerSpawnPoint.transform.rotation);
         UIcam.SetActive(false);

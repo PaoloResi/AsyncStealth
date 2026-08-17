@@ -37,7 +37,7 @@ public class PatrolData : BuildingData
 public class BuildingDataList
 {
     public List<BuildingData> buildings = new List<BuildingData>();
-    //public List<PatrolData> patrols = new List<PatrolData>();
+    public List<PatrolData> patrols = new List<PatrolData>();
 }
 
 [Serializable]

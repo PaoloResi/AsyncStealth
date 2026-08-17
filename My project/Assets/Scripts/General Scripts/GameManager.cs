@@ -50,4 +50,14 @@ public class GameManager : MonoBehaviour
     {
         SceneManager.LoadScene(SceneName);
     }
+
+    //private void OnApplicationQuit()
+    //{
+    //    //added this to ensure things get saved but may cause issues
+    //    Debug.Log("gameexited");
+    //    string json = JsonUtility.ToJson(GameManager.instance.savesList, true);
+    //    string path = System.IO.Path.Combine(Application.persistentDataPath, "Savedbuilds.json");
+    //    System.IO.File.WriteAllText(path, json);
+    //    Application.Quit();
+    //}
 }

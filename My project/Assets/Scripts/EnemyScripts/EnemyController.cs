@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine.AI;
 
 public class EnemyController : MonoBehaviour
 {
@@ -37,7 +38,10 @@ public class EnemyController : MonoBehaviour
 
     private CharacterController _controller;
     private Collider enemyCapsuleCollider;
+    private NavMeshAgent agent;
     private List<PatrolIdentity> patrolPoints = new List<PatrolIdentity>();
+    private float arriveDistance = 0.5f;
+    private int patrolStep;
 
 
 
@@ -46,27 +50,52 @@ public class EnemyController : MonoBehaviour
     {
         _controller = GetComponent<CharacterController>();
         enemyCapsuleCollider = GetComponentInChildren<Collider>();
+        agent = GetComponent<NavMeshAgent>();
+    }
+
+    private void Update()
+    {
+        Move();
     }
 
     public void SetPatrol(PatrolIdentity startPoint, Dictionary<string, PatrolIdentity> patrolPointDictionary)
-    {
+    {   
         patrolPoints.Clear();
         if (startPoint == null) return;
 
         patrolPoints.Add(startPoint);
         PatrolIdentity currentPoint = startPoint;
-        
 
-        while (currentPoint.nextPoint != null)
+        while (!string.IsNullOrEmpty(currentPoint.nextPoint))
         {
-            currentPoint = patrolPointDictionary.TryGetValue(currentPoint.nextPoint, out PatrolIdentity next) ? next : null;
-            patrolPoints.Add(currentPoint);
+            if (!patrolPointDictionary.TryGetValue(currentPoint.nextPoint, out PatrolIdentity next))
+            {
+                Debug.LogWarning($"Patrol point '{currentPoint.nextPoint}' not found in dictionary.");
+                break;
+            }
+            patrolPoints.Add(next);
+            currentPoint = next;
         }
-
     }
 
     public void Move()
     {
+        if (patrolPoints.Count == 0) return;
 
+        if (!agent.pathPending && agent.remainingDistance <= arriveDistance)
+        {
+            patrolStep++;
+            int index = PingPongIndex(patrolStep, patrolPoints.Count);
+            agent.destination = patrolPoints[index].transform.position;
+        }
+    }
+
+    private static int PingPongIndex(int step, int count)
+    {
+        if (count <= 1) return 0;
+
+        int period = (count - 1) * 2;
+        int phase  = ((step % period) +  period) % period;
+        return phase < count ? phase : period - phase;
     }
 }

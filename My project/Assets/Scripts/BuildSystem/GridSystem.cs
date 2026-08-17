@@ -475,6 +475,9 @@ public class GridSystem : MonoBehaviour
             PatrolIdentity previousPatrolIdentity = PatrolPointDic.TryGetValue(hoveredObject.GetComponent<PatrolIdentity>().previousPoint, out PatrolIdentity prev) ? prev : null;
             PatrolIdentity nextPatrolIdentity = PatrolPointDic.TryGetValue(hoveredObject.GetComponent<PatrolIdentity>().nextPoint, out PatrolIdentity next) ? next : null;
 
+            print(previousPatrolIdentity.RouteID + previousPatrolIdentity.PointID);
+            print(nextPatrolIdentity.RouteID + nextPatrolIdentity.PointID);
+
             if (previousPatrolIdentity != null)
             {
                 previousPatrolIdentity.nextPoint = nextPatrolIdentity.RouteID + nextPatrolIdentity.PointID;
@@ -509,7 +512,11 @@ public class GridSystem : MonoBehaviour
 
     public void Save(int saveNum)
     {
-        
+        //if (placingMode)
+        //{
+        //    setPlaceMode();
+        //    StopGhostPosition();
+        //}
         BuildingDataList saveData = new BuildingDataList();
         GameObject[] placedBuildings = GameObject.FindGameObjectsWithTag("Building");
 
@@ -518,7 +525,7 @@ public class GridSystem : MonoBehaviour
             if (building.GetComponent<PatrolIdentity>() != null)
             {
                 PatrolIdentity identifier = building.GetComponent<PatrolIdentity>();
-                saveData.buildings.Add(new PatrolData(
+                saveData.patrols.Add(new PatrolData(
                     identifier.buildId,
                     building.transform.position,
                     building.transform.rotation,
@@ -540,11 +547,17 @@ public class GridSystem : MonoBehaviour
             }
 
         }
+        
         GameManager.instance.savesList.Saves.Insert(saveNum, saveData);
     }
 
     public void Load(int saveNum)
     {
+        //if (placingMode)
+        //{
+        //    setPlaceMode();
+        //    StopGhostPosition();
+        //}
         string path = System.IO.Path.Combine(Application.persistentDataPath, "Savedbuilds.json");
 
         //print(path);
@@ -556,6 +569,21 @@ public class GridSystem : MonoBehaviour
         RemoveAll();
 
         foreach (BuildingData data in saveData.buildings)
+        {
+            GameObject prefab = buildingRegistry.GetPrefab(data.ID);
+
+            GameObject instance = Instantiate(prefab, data.position, data.rotation);
+
+            List<BuildingPiece> size = GetObjectSize(instance);
+            int rotation = GetObjectRotation(instance);
+
+            foreach (Vector3 c in GetCells(WorldToCell(instance.transform.position), size, rotation))
+                occupiedPositions.Add(c);
+
+            BuildManager.instance.buildCount++;
+        }
+
+        foreach (PatrolData data in saveData.patrols)
         {
             GameObject prefab = buildingRegistry.GetPrefab(data.ID);
 
