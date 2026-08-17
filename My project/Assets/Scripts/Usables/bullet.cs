@@ -9,7 +9,7 @@ public class bullet : MonoBehaviour
     {
         damage = dmg;
         speed = spd;
-        Destroy(gameObject, 5f);
+        Destroy(gameObject, 3f);
     }
 
     // Update is called once per frame

@@ -43,6 +43,20 @@ public class EnemyController : MonoBehaviour
     private float arriveDistance = 0.5f;
     private int patrolStep;
 
+    public float health;
+
+    public GameObject projectile;
+
+    public Transform player;
+    public LayerMask whatIsInteruption,whatIsPlayer;
+
+    public float timeBetweenAttack;
+    bool alreadyAttacked;
+
+    public float sightRange, attackRange;
+    public bool playerInSightRange, playerInAttackRange;
+
+
 
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -51,11 +65,18 @@ public class EnemyController : MonoBehaviour
         _controller = GetComponent<CharacterController>();
         enemyCapsuleCollider = GetComponentInChildren<Collider>();
         agent = GetComponent<NavMeshAgent>();
+        player = GameObject.Find("PlayerCapsule").transform;
     }
 
     private void Update()
     {
-        Move();
+        playerInSightRange = Physics.CheckSphere(transform.position, sightRange, whatIsPlayer);
+        playerInAttackRange = Physics.CheckSphere(transform.position, attackRange, whatIsPlayer);
+
+
+        if (!playerInSightRange && !playerInAttackRange) Move();
+        if (playerInSightRange && !playerInAttackRange) ChasePlayer();
+        if (playerInSightRange && playerInAttackRange) AttackPlayer();
     }
 
     public void SetPatrol(PatrolIdentity startPoint, Dictionary<string, PatrolIdentity> patrolPointDictionary)
@@ -70,7 +91,6 @@ public class EnemyController : MonoBehaviour
         {
             if (!patrolPointDictionary.TryGetValue(currentPoint.nextPoint, out PatrolIdentity next))
             {
-                Debug.LogWarning($"Patrol point '{currentPoint.nextPoint}' not found in dictionary.");
                 break;
             }
             patrolPoints.Add(next);
@@ -95,7 +115,44 @@ public class EnemyController : MonoBehaviour
         if (count <= 1) return 0;
 
         int period = (count - 1) * 2;
-        int phase  = ((step % period) +  period) % period;
+        int phase  = (step % period);
         return phase < count ? phase : period - phase;
+    }
+
+    public void ChasePlayer()
+    {
+        agent.SetDestination(player.position);
+    }
+
+    public void AttackPlayer()
+    {
+        agent.SetDestination(transform.position);
+
+        transform.LookAt(player);
+
+        if (!alreadyAttacked)
+        {
+            Instantiate(projectile, transform.position, Quaternion.identity).GetComponent<Rigidbody>();
+
+            alreadyAttacked = true;
+            Invoke(nameof(ResetAttack), timeBetweenAttack);
+        }
+    }
+
+    private void ResetAttack()
+    {
+        alreadyAttacked = false;
+    }
+
+    public void TakeDamage(int damage)
+    {
+        health -= damage;
+
+        if (health <= 0) Invoke(nameof(DestroyEnemy), 0.5f);
+    }
+
+    private void DestroyEnemy()
+    {
+        Destroy(gameObject);
     }
 }

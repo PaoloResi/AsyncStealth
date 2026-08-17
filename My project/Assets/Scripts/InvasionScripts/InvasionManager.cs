@@ -70,7 +70,9 @@ public class InvasionManager : MonoBehaviour
         }
 
         SpawnEnemies();
-        Instantiate(playerPrefab, playerSpawnPoint.transform.position, playerSpawnPoint.transform.rotation);
+        GameObject player = Instantiate(playerPrefab, playerSpawnPoint.transform.position, playerSpawnPoint.transform.rotation);
+        player.name = "PlayerCapsule";
+        player.layer = 3;
         UIcam.SetActive(false);
         canvas.SetActive(false);
     }

@@ -141,6 +141,17 @@ MonoBehaviour:
   GroundLayers:
     serializedVersion: 2
     m_Bits: 0
+  health: 100
+  projectile: {fileID: 4514180309247242752, guid: 994020ef2933ab043b760fc5e01299f8, type: 3}
+  player: {fileID: 0}
+  whatIsPlayer:
+    serializedVersion: 2
+    m_Bits: 8
+  timeBetweenAttack: 10
+  sightRange: 20
+  attackRange: 12
+  playerInSightRange: 0
+  playerInAttackRange: 0
 --- !u!195 &2811980408283656259
 NavMeshAgent:
   m_ObjectHideFlags: 0

@@ -27,10 +27,8 @@ public class GunLogic : MonoBehaviour
     {
         if (shootAction.action.WasPressedThisFrame())
         {
-           GameObject bullet = Instantiate(bulletPrefab, bulletSpawn.position, bulletSpawn.rotation
-               
-               );
-           bullet.GetComponent<bullet>().Initalize(5, 5);
+            GameObject bullet = Instantiate(bulletPrefab, bulletSpawn.position, bulletSpawn.rotation);
+            bullet.GetComponent<bullet>().Initalize(5, 5);
         }
     }
 }
