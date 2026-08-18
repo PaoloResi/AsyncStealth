@@ -39,6 +39,7 @@ public class InvasionManager : MonoBehaviour
 
     public void Load(int saveNum)
     {
+        patrolPointsDic.Clear();
         string path = System.IO.Path.Combine(Application.persistentDataPath, "Savedbuilds.json");
 
         string json = System.IO.File.ReadAllText(path);

@@ -539,6 +539,10 @@ public class GridSystem : MonoBehaviour
             {
                 BuildingIdentity identifier = building.GetComponent<BuildingIdentity>();
 
+                print(building.name);
+
+                if (identifier == null) print("null identifier");
+
                 saveData.buildings.Add(new BuildingData(
                     identifier.buildId,
                     building.transform.position,

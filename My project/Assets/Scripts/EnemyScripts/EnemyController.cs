@@ -26,6 +26,7 @@ public class EnemyController : MonoBehaviour
     public bool playerInSightRange, playerInAttackRange;
 
     public RaycastHit sightHit;
+    //public RaycastHit previousHit;
 
     public RaycastHit attackHit;
 
@@ -62,8 +63,8 @@ public class EnemyController : MonoBehaviour
         else playerInAttackRange = false;
 
         if (!playerInSightRange && !playerInAttackRange) Move();
-        if (playerInSightRange && !playerInAttackRange) ChasePlayer();
-        if (playerInSightRange && playerInAttackRange) AttackPlayer();
+        else if (playerInSightRange && !playerInAttackRange) ChasePlayer();
+        else if (playerInSightRange && playerInAttackRange) AttackPlayer();
     }
 
     public void SetPatrol(PatrolIdentity startPoint, Dictionary<string, PatrolIdentity> patrolPointDictionary)
@@ -109,13 +110,19 @@ public class EnemyController : MonoBehaviour
     public void ChasePlayer()
     {
         agent.SetDestination(player.position);
+
+        Vector3 lookat = new Vector3(player.transform.position.x, transform.position.y, player.transform.position.z);
+
+        transform.LookAt(lookat);
     }
 
     public void AttackPlayer()
     {
         agent.SetDestination(transform.position);
 
-        transform.LookAt(player);
+        Vector3 lookat = new Vector3(player.transform.position.x, transform.position.y, player.transform.position.z);
+
+        transform.LookAt(lookat);
 
         if (!alreadyAttacked)
         {
