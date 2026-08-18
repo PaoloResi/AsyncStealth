@@ -5,8 +5,8 @@ using UnityEngine.AI;
 public class EnemyController : MonoBehaviour
 {
 
-    private CharacterController _controller;
-    private Collider enemyCapsuleCollider;
+    private enum State {Patrol, Chase, Attack, Search}
+    
     private NavMeshAgent agent;
     private List<PatrolIdentity> patrolPoints = new List<PatrolIdentity>();
     private float arriveDistance = 0.5f;
@@ -17,16 +17,25 @@ public class EnemyController : MonoBehaviour
     public GameObject projectile;
 
     public Transform player;
-    public LayerMask whatIsInteruption,whatIsPlayer;
+    public LayerMask whatIsPlayer;
 
     public float timeBetweenAttack;
     bool alreadyAttacked;
 
     public float sightRange, attackRange;
+    [Range(0f, 180f)] public float sightAngle = 60f;
+    public float eyeHeight = 1f;
     public bool playerInSightRange, playerInAttackRange;
 
+    private State state = State.Patrol;
+    private Vector3 lastKnownPosition;
+    private float searchTimer;
+    private float searchDuration = 6f;
+    private float searchRadius = 3f;
+    private float searchPointWait = 1.5f;
+    private float pointWaitTimer;
+
     public RaycastHit sightHit;
-    //public RaycastHit previousHit;
 
     public RaycastHit attackHit;
 
@@ -36,35 +45,63 @@ public class EnemyController : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        _controller = GetComponent<CharacterController>();
-        enemyCapsuleCollider = GetComponentInChildren<Collider>();
         agent = GetComponent<NavMeshAgent>();
         player = GameObject.Find("PlayerCapsule").transform;
     }
 
     private void Update()
     {
-        //playerInSightRange = Physics.CheckSphere(transform.position, sightRange, whatIsPlayer);
-        //playerInAttackRange = Physics.CheckSphere(transform.position, attackRange, whatIsPlayer);
 
-        Debug.DrawRay(transform.position, transform.forward * sightRange, Color.red);
-        Physics.Raycast(transform.position, transform.forward, out sightHit, sightRange);
-        if (sightHit.collider == null) playerInSightRange = false;
-        else if (sightHit.transform.parent.gameObject == player.gameObject) playerInSightRange = true;
-        else
+        bool canSee = CanSeePlayer(out float distance);
+
+        if (canSee)
         {
-            print(sightHit.transform.parent.gameObject.name);
-            playerInSightRange = false;
+            lastKnownPosition = player.position;
+            state = distance <= attackRange ? State.Attack : State.Chase;
+        }
+        else if (state == State.Chase || state == State.Attack)
+        {
+            state = State.Search;
+            searchTimer = searchDuration;
+            pointWaitTimer = 0f;
+            agent.SetDestination(lastKnownPosition);
         }
 
-        Physics.Raycast(transform.position, transform.forward, out attackHit, attackRange);
-        if (attackHit.collider == null) playerInAttackRange = false;    
-        else if (attackHit.transform.parent.gameObject == player.gameObject) playerInAttackRange = true;
-        else playerInAttackRange = false;
+        switch (state)
+        {
+            case State.Patrol:
+                Move();
+                break;
+            case State.Chase:
+                ChasePlayer(); 
+                break;
+            case State.Attack:
+                AttackPlayer();
+                break;
+            case State.Search:
+                Search();
+                break;
+        }
 
-        if (!playerInSightRange && !playerInAttackRange) Move();
-        else if (playerInSightRange && !playerInAttackRange) ChasePlayer();
-        else if (playerInSightRange && playerInAttackRange) AttackPlayer();
+        print(state);
+
+        //Debug.DrawRay(transform.position, transform.forward * sightRange, Color.red);
+        //Physics.Raycast(transform.position, transform.forward, out sightHit, sightRange);
+        //if (sightHit.collider == null) playerInSightRange = false;
+        //else if (sightHit.transform.parent.gameObject == player.gameObject) playerInSightRange = true;
+        //else
+        //{
+        //    playerInSightRange = false;
+        //}
+
+        //Physics.Raycast(transform.position, transform.forward, out attackHit, attackRange);
+        //if (attackHit.collider == null) playerInAttackRange = false;    
+        //else if (attackHit.transform.parent.gameObject == player.gameObject) playerInAttackRange = true;
+        //else playerInAttackRange = false;
+
+        //if (!playerInSightRange && !playerInAttackRange) Move();
+        //else if (playerInSightRange && !playerInAttackRange) ChasePlayer();
+        //else if (playerInSightRange && playerInAttackRange) AttackPlayer();
     }
 
     public void SetPatrol(PatrolIdentity startPoint, Dictionary<string, PatrolIdentity> patrolPointDictionary)
@@ -107,6 +144,27 @@ public class EnemyController : MonoBehaviour
         return phase < count ? phase : period - phase;
     }
 
+
+    private bool CanSeePlayer (out float distance)
+    {
+        Vector3 eye = transform.position;
+        Vector3 target = player.position;
+        Vector3 toPlayer = target - eye;
+        distance = toPlayer.magnitude;
+
+        if (distance > sightRange) return false;
+
+        Vector3 flat = new Vector3(toPlayer.x, 0f, toPlayer.z);
+        if (Vector3.Angle(transform.forward, flat) > sightAngle * 0.5f) return false;
+
+        if (Physics.Raycast(eye, toPlayer.normalized, out RaycastHit hit, distance))
+        {
+            return hit.transform.root == player.root;
+        }
+
+        return false;
+    }
+
     public void ChasePlayer()
     {
         agent.SetDestination(player.position);
@@ -138,6 +196,45 @@ public class EnemyController : MonoBehaviour
         alreadyAttacked = false;
     }
 
+    private void Search()
+    {
+        searchTimer -= Time.deltaTime;
+
+        if (searchTimer <= 0f)
+        {
+            state = State.Patrol;
+            agent.SetDestination(transform.position);
+            return;
+        }
+
+        if (!agent.pathPending && agent.remainingDistance <= arriveDistance)
+        {
+            pointWaitTimer -= Time.deltaTime;
+            if (pointWaitTimer <= 0f)
+            {
+                agent.SetDestination(RandomPointNear(lastKnownPosition));
+                pointWaitTimer = searchPointWait;
+            }
+            else
+            {
+                transform.Rotate(0f, 90f * Time.deltaTime, 0f);
+            }
+        }
+    }
+
+    private Vector3 RandomPointNear(Vector3 center)
+    {
+        for (int i = 0; i < 10;  i++)
+        {
+            Vector3 point = center + Random.insideUnitSphere * searchRadius;
+            if (NavMesh.SamplePosition(point, out NavMeshHit hit, searchRadius, NavMesh.AllAreas))
+            {
+                return hit.position;
+            }
+        }
+        return center;
+    }
+
     public void TakeDamage(int damage)
     {
         health -= damage;
@@ -148,5 +245,21 @@ public class EnemyController : MonoBehaviour
     private void DestroyEnemy()
     {
         Destroy(gameObject);
+    }
+
+    private void OnDrawGizmos()
+    {
+        Vector3 eye = transform.position + Vector3.up;
+        Gizmos.color = Color.yellow;
+        Vector3 left = Quaternion.Euler(0, -sightAngle * 0.5f, 0) * transform.forward;
+        Vector3 right = Quaternion.Euler(0, sightAngle * 0.5f, 0) * transform.forward;
+        Gizmos.DrawRay(eye, left * sightRange);
+        Gizmos.DrawRay(eye, right * sightRange);
+
+        if (Application.isPlaying && state == State.Search)
+        {
+            Gizmos.color = Color.cyan;
+            Gizmos.DrawWireSphere(lastKnownPosition, searchRadius);
+        }
     }
 }
