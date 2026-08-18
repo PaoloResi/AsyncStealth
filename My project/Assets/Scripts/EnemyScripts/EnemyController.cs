@@ -35,6 +35,16 @@ public class EnemyController : MonoBehaviour
     private float searchPointWait = 1.5f;
     private float pointWaitTimer;
 
+
+    public float detectionMeter;
+    public float baseFillRate = 0.35f;
+    public float closeFillMultiplier = 4f;
+    public float decayRate = 0.25f;
+    public float decayDelay = 0.5f;
+    public bool isAlerted;
+
+    private float decayDelayTimer;
+
     public RaycastHit sightHit;
 
     public RaycastHit attackHit;
@@ -57,14 +67,44 @@ public class EnemyController : MonoBehaviour
         if (canSee)
         {
             lastKnownPosition = player.position;
-            state = distance <= attackRange ? State.Attack : State.Chase;
+            decayDelayTimer = decayDelay;
+
+            if (!isAlerted)
+            {
+                detectionMeter += DetectionRate(distance) * Time.deltaTime;
+                
+                if (detectionMeter >= 1f)
+                {
+                    detectionMeter = 1f;
+                    isAlerted = true;
+                }
+                else
+                {
+                    FacePlayer();
+                    if (state == State.Patrol) agent.SetDestination(transform.position);
+                }
+            }
+
+            if (isAlerted)
+            {
+                state = distance <= attackRange ? State.Attack : State.Chase;
+            }
         }
-        else if (state == State.Chase || state == State.Attack)
+        else 
         {
-            state = State.Search;
-            searchTimer = searchDuration;
-            pointWaitTimer = 0f;
-            agent.SetDestination(lastKnownPosition);
+            if (decayDelayTimer > 0f) decayDelayTimer -= Time.deltaTime;
+            else detectionMeter = Mathf.Max(0f, detectionMeter - decayRate * Time.deltaTime);
+
+            if (detectionMeter <= 0f) isAlerted = false;
+
+            if (state == State.Chase || state == State.Attack)
+            {
+                state = State.Search;
+                searchTimer = searchDuration;
+                pointWaitTimer = 0f;
+                agent.SetDestination(lastKnownPosition);
+            }
+            
         }
 
         switch (state)
@@ -83,25 +123,6 @@ public class EnemyController : MonoBehaviour
                 break;
         }
 
-        print(state);
-
-        //Debug.DrawRay(transform.position, transform.forward * sightRange, Color.red);
-        //Physics.Raycast(transform.position, transform.forward, out sightHit, sightRange);
-        //if (sightHit.collider == null) playerInSightRange = false;
-        //else if (sightHit.transform.parent.gameObject == player.gameObject) playerInSightRange = true;
-        //else
-        //{
-        //    playerInSightRange = false;
-        //}
-
-        //Physics.Raycast(transform.position, transform.forward, out attackHit, attackRange);
-        //if (attackHit.collider == null) playerInAttackRange = false;    
-        //else if (attackHit.transform.parent.gameObject == player.gameObject) playerInAttackRange = true;
-        //else playerInAttackRange = false;
-
-        //if (!playerInSightRange && !playerInAttackRange) Move();
-        //else if (playerInSightRange && !playerInAttackRange) ChasePlayer();
-        //else if (playerInSightRange && playerInAttackRange) AttackPlayer();
     }
 
     public void SetPatrol(PatrolIdentity startPoint, Dictionary<string, PatrolIdentity> patrolPointDictionary)
@@ -169,18 +190,14 @@ public class EnemyController : MonoBehaviour
     {
         agent.SetDestination(player.position);
 
-        Vector3 lookat = new Vector3(player.transform.position.x, transform.position.y, player.transform.position.z);
-
-        transform.LookAt(lookat);
+        FacePlayer();
     }
 
     public void AttackPlayer()
     {
         agent.SetDestination(transform.position);
 
-        Vector3 lookat = new Vector3(player.transform.position.x, transform.position.y, player.transform.position.z);
-
-        transform.LookAt(lookat);
+        FacePlayer();
 
         if (!alreadyAttacked)
         {
@@ -233,6 +250,20 @@ public class EnemyController : MonoBehaviour
             }
         }
         return center;
+    }
+
+    private float DetectionRate(float distance)
+    {
+        float closeness = 1f - Mathf.Clamp01(distance / sightRange);
+        float mult = Mathf.Lerp(1f, closeFillMultiplier, closeness);
+
+        return baseFillRate * mult;
+    }
+
+    private void FacePlayer()
+    {
+        Vector3 lookAt = new Vector3 (player.position.x, transform.position.y, transform.position.z);
+        transform.LookAt(lookAt);
     }
 
     public void TakeDamage(int damage)
