@@ -1,4 +1,8 @@
+using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem; 
 
@@ -24,6 +28,22 @@ public class GridSystem : MonoBehaviour
     private string routeValue = "A";
     private int pointValue = 0;
 
+    [SerializeField] private TextMeshProUGUI messageText;
+    private Coroutine activeMessage;
+
+    [SerializeField] private SceneHandler sceneHandler;
+
+
+    public void Start()
+    {
+        if (GameManager.instance.returning == true)
+        {
+            loadFromTemp();
+            GameManager.instance.returning = false;
+        }
+
+
+    }
 
     public void SetObjectToPlace(GameObject objToPlace)
     {
@@ -133,12 +153,15 @@ public class GridSystem : MonoBehaviour
             }
             if (Mouse.current.leftButton.wasPressedThisFrame && onPlane)
                 PlaceObject();
-            if (Mouse.current.rightButton.wasPressedThisFrame)
+            else if (Mouse.current.rightButton.wasPressedThisFrame)
             {
                 setPlaceMode();
                 StopGhostPosition();
             }
-            UpdateGhostPosition();
+            else
+            { 
+                UpdateGhostPosition(); 
+            }
 
         }
         else if (deleteMode)
@@ -562,11 +585,6 @@ public class GridSystem : MonoBehaviour
         //    setPlaceMode();
         //    StopGhostPosition();
         //}
-        string path = System.IO.Path.Combine(Application.persistentDataPath, "Savedbuilds.json");
-
-        //print(path);
-
-        string json = System.IO.File.ReadAllText(path);
 
         BuildingDataList saveData = GameManager.instance.savesList.Saves[saveNum];
 
@@ -603,4 +621,109 @@ public class GridSystem : MonoBehaviour
         }
     }
 
+
+    public void saveToTemp()
+    {
+        BuildingDataList saveData = new BuildingDataList();
+        GameObject[] placedBuildings = GameObject.FindGameObjectsWithTag("Building");
+        BuildingIdentity endPoint = null;
+
+        foreach (GameObject building in placedBuildings)
+        {
+            if (building.GetComponent<PatrolIdentity>() != null)
+            {
+                PatrolIdentity identifier = building.GetComponent<PatrolIdentity>();
+                saveData.patrols.Add(new PatrolData(
+                    identifier.buildId,
+                    building.transform.position,
+                    building.transform.rotation,
+                    identifier.RouteID,
+                    identifier.PointID,
+                    identifier.previousPoint != null ? identifier.previousPoint : null,
+                    identifier.nextPoint != null ? identifier.nextPoint : null
+                    ));
+            }
+            else
+            {
+                BuildingIdentity identifier = building.GetComponent<BuildingIdentity>();
+
+                if (identifier.buildId == "EndPoint")
+                {
+                    endPoint = identifier;
+                }
+
+                if (identifier == null) print("null identifier");
+
+                saveData.buildings.Add(new BuildingData(
+                    identifier.buildId,
+                    building.transform.position,
+                    building.transform.rotation
+                    ));
+            }
+
+        }
+        //print(endPoint.name);
+        if (endPoint.name == null)
+        {
+            if (activeMessage != null)
+            {
+                StopCoroutine(activeMessage);
+            }
+            activeMessage = StartCoroutine(MessageRoutine(5f));
+            return;
+        }
+        else
+        {
+            GameManager.instance.tempSave = saveData;
+            sceneHandler.loadScene("PlayerPTScene");
+        }
+
+    }
+
+    public void loadFromTemp()
+    {
+        BuildingDataList saveData = GameManager.instance.tempSave;
+
+        RemoveAll();
+
+        foreach (BuildingData data in saveData.buildings)
+        {
+            GameObject prefab = buildingRegistry.GetPrefab(data.ID);
+
+            GameObject instance = Instantiate(prefab, data.position, data.rotation);
+
+            List<BuildingPiece> size = GetObjectSize(instance);
+            int rotation = GetObjectRotation(instance);
+
+            foreach (Vector3 c in GetCells(WorldToCell(instance.transform.position), size, rotation))
+                occupiedPositions.Add(c);
+
+            BuildManager.instance.buildCount++;
+        }
+
+        foreach (PatrolData data in saveData.patrols)
+        {
+            GameObject prefab = buildingRegistry.GetPrefab(data.ID);
+
+            GameObject instance = Instantiate(prefab, data.position, data.rotation);
+
+            List<BuildingPiece> size = GetObjectSize(instance);
+            int rotation = GetObjectRotation(instance);
+
+            foreach (Vector3 c in GetCells(WorldToCell(instance.transform.position), size, rotation))
+                occupiedPositions.Add(c);
+
+            BuildManager.instance.buildCount++;
+        }
+
+        GameManager.instance.tempSave = new BuildingDataList();
+    }
+
+    private IEnumerator MessageRoutine(float duration)
+    {
+        messageText.text = "No active End Point in Scene";
+        yield return new WaitForSeconds(duration);
+        messageText.text = "";
+        activeMessage = null;
+    }
 }

@@ -9,6 +9,12 @@ public class GameManager : MonoBehaviour
 
     public static GameManager instance;
     public SavesList savesList;
+    public SavesList uploadList;
+    public BuildingDataList tempSave;
+    public bool testing;
+    public bool uploading;
+
+    public bool returning;
     private void Awake()
     {
         if (instance == null)

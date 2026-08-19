@@ -1,23 +1,27 @@
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class InvasionManager : MonoBehaviour
+public class PlaytestManager : MonoBehaviour
 {
+
+    public bool testing;
+    public bool uploading;
+    public bool completed;
 
     public BuildingRegistry buildingRegistry;
     public float gridSize = 1f;
-    public static InvasionManager instance;
+    public static PlaytestManager instance;
     public GameObject playerPrefab;
     public GameObject enemyPrefab;
     public GameObject UIcam;
     public GameObject playerSpawnPoint;
-    public GameObject canvas;
     public PatrolFinder patrolFinder;
+
+    public SceneHandler sceneHandler;
     public Dictionary<string, PatrolIdentity> patrolPointsDic = new Dictionary<string, PatrolIdentity>();
 
-
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
 
@@ -29,8 +33,13 @@ public class InvasionManager : MonoBehaviour
         {
             Destroy(this);
         }
+    }
 
-
+    private void Awake()
+    {
+        testing = GameManager.instance.testing;
+        uploading = GameManager.instance.uploading;
+        LoadTemp();
     }
 
     private void Update()
@@ -46,22 +55,16 @@ public class InvasionManager : MonoBehaviour
         }
     }
 
-    private void Awake()
+    public void LoadTemp()
     {
-        patrolFinder = FindFirstObjectByType<PatrolFinder>();
-    }
 
-    public void Load(int saveNum)
-    {
-        patrolPointsDic.Clear();
-
-        BuildingDataList saveData = GameManager.instance.savesList.Saves[saveNum];
+        BuildingDataList saveData = GameManager.instance.tempSave;
 
         foreach (BuildingData data in saveData.buildings)
         {
             GameObject prefab = buildingRegistry.GetPrefab(data.ID);
             GameObject instance = Instantiate(prefab, data.position, data.rotation);
-             
+
         }
 
         foreach (PatrolData data in saveData.patrols)
@@ -86,7 +89,6 @@ public class InvasionManager : MonoBehaviour
         player.name = "PlayerCapsule";
         player.layer = 3;
         UIcam.SetActive(false);
-        canvas.SetActive(false);
     }
 
     public void SpawnEnemies()
@@ -103,6 +105,11 @@ public class InvasionManager : MonoBehaviour
 
     public void finishLevel()
     {
-       SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        GameManager.instance.returning = true;
+        if (uploading && completed)
+        {
+            GameManager.instance.uploadList.Saves.Add(GameManager.instance.tempSave);
+        }
+        sceneHandler.loadScene("BuildingScene");
     }
 }

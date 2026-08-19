@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class BuildManager : MonoBehaviour
@@ -70,6 +71,18 @@ public class BuildManager : MonoBehaviour
     {
         if (!savePanel.activeSelf)
             loadPanel.SetActive(!loadPanel.activeSelf);
+    }
+
+    public void testBuild()
+    {
+        GameManager.instance.testing = true;
+        gridSystem.saveToTemp();
+    }
+
+    public void uploadBuild()
+    {
+        GameManager.instance.uploading = true;
+        gridSystem.saveToTemp();
     }
 
 }
