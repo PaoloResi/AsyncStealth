@@ -105,4 +105,13 @@ public class InvasionManager : MonoBehaviour
     {
        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
+
+    public void HandlePlayerDamage(List<Collider> enemyList, int damage)
+    {
+        foreach (Collider enemy in enemyList)
+        {
+            EnemyController controller = enemy.gameObject.GetComponent<EnemyController>();
+            controller.TakeDamage(damage);
+        }
+    }
 }

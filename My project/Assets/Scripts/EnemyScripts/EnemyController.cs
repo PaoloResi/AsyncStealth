@@ -48,6 +48,7 @@ public class EnemyController : MonoBehaviour
     public RaycastHit sightHit;
 
     public RaycastHit attackHit;
+    private GunLogic gunLogic;
 
 
 
@@ -57,6 +58,8 @@ public class EnemyController : MonoBehaviour
     {
         agent = GetComponent<NavMeshAgent>();
         player = GameObject.Find("PlayerCapsule").transform;
+        gunLogic = GetComponentInChildren<GunLogic>();
+
     }
 
     private void Update()
@@ -201,8 +204,7 @@ public class EnemyController : MonoBehaviour
 
         if (!alreadyAttacked)
         {
-            //Instantiate(projectile, transform.position, Quaternion.identity).GetComponent<Rigidbody>();
-            //print("attacked player");
+            gunLogic.shoot();
             alreadyAttacked = true;
             Invoke(nameof(ResetAttack), timeBetweenAttack);
         }
@@ -268,7 +270,14 @@ public class EnemyController : MonoBehaviour
 
     public void TakeDamage(int damage)
     {
-        health -= damage;
+        if (state == State.Patrol || state == State.Search)
+        {
+            Invoke(nameof(DestroyEnemy), 0.5f);
+        }
+        else
+        {
+            health -= damage;
+        }
 
         if (health <= 0) Invoke(nameof(DestroyEnemy), 0.5f);
     }

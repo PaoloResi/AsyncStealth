@@ -2,6 +2,7 @@
 #if ENABLE_INPUT_SYSTEM 
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.XR;
+using UnityEngine.SceneManagement;
 using static UnityEditor.SceneView;
 #endif
 
@@ -17,8 +18,13 @@ namespace StarterAssets
     public class ThirdPersonController : MonoBehaviour
     {
         [Header("Player")]
+
+        int health = 100;
+
         [Tooltip("Move speed of the character in m/s")]
         public float MoveSpeed = 2.0f;
+        public float CrouchSpeed = 1.0f;
+
         public float oldMoveSpeed;
 
         [Tooltip("Sprint speed of the character in m/s")]
@@ -83,18 +89,15 @@ namespace StarterAssets
         public bool LockCameraPosition = false;
 
         public InputActionReference lookAction;
-        public InputActionReference crouchAction;
-        public Transform gunTransform;
-        public bool crouching = false;
+        //public InputActionReference crouchAction;
+        //public bool crouching = false;
         void OnEnable() 
         {
             lookAction.action.Enable();
-            crouchAction.action.Enable();
         }
         void OnDisable()
         {
             lookAction.action.Disable();
-            crouchAction.action.Disable();
 
         }
 
@@ -106,6 +109,14 @@ namespace StarterAssets
         private float _rotationVelocity;
         private float _verticalVelocity;
         private float _terminalVelocity = 53.0f;
+
+        [Header("Crouching")]
+        [SerializeField] private float crouchHeight = 1.2f;
+        [SerializeField] private Vector3 crouchCenter = new Vector3(0, 0.595f, 0);
+        [SerializeField] private float crouchTransitionSpeed = 7f;
+        private float standHeight;
+        private Vector3 standCenter;
+        private bool crouched;
 
         // timeout deltatime
         private float _jumpTimeoutDelta;
@@ -126,6 +137,8 @@ namespace StarterAssets
         private StarterAssetsInputs _input;
         private GameObject _mainCamera;
         private Collider playerCapsuleCollider;
+        private AttackHitboxScript _attackHitboxScript;
+        
 
         private const float _threshold = 0.01f;
 
@@ -161,6 +174,7 @@ namespace StarterAssets
 #if ENABLE_INPUT_SYSTEM 
             _playerInput = GetComponent<PlayerInput>();
             playerCapsuleCollider = GetComponentInChildren<Collider>();
+            _attackHitboxScript = GetComponentInChildren<AttackHitboxScript>();
 #else
 			Debug.LogError( "Starter Assets package is missing dependencies. Please use Tools/Starter Assets/Reinstall Dependencies to fix it");
 #endif
@@ -170,6 +184,10 @@ namespace StarterAssets
             // reset our timeouts on start
             _jumpTimeoutDelta = JumpTimeout;
             _fallTimeoutDelta = FallTimeout;
+
+            // Crouch Values
+            standCenter = _controller.center;
+            standHeight = _controller.height;
         }
 
         private void Update()
@@ -179,7 +197,19 @@ namespace StarterAssets
             JumpAndGravity();
             GroundedCheck();
             Move();
-            crouch();
+            UpdateControllerCollider();
+
+            if (_input.crouch)
+            {
+                crouched = !crouched;
+
+                _input.crouch = false;
+            }
+
+            if (Input.GetMouseButtonDown(0))
+            {
+                attackCreature();
+            }
         }
 
         private void LateUpdate()
@@ -223,14 +253,18 @@ namespace StarterAssets
 
             float pitch = _mainCamera.transform.localEulerAngles.x;
 
-            gunTransform.localRotation = Quaternion.Euler(pitch, 0f, 0f);
 
         }
 
         public void Move()
         {
             // set target speed based on move speed, sprint speed and if sprint is pressed
-            float targetSpeed = _input.sprint ? SprintSpeed : MoveSpeed;
+            float targetSpeed = _input.sprint ? SprintSpeed : crouched ? CrouchSpeed : MoveSpeed;
+
+            if (_input.sprint)
+            {
+                crouched = false;
+            }
 
             // a simplistic acceleration and deceleration designed to be easy to remove, replace, or iterate upon
 
@@ -292,9 +326,24 @@ namespace StarterAssets
             {
                 _animator.SetFloat(_animIDSpeed, _animationBlend);
                 _animator.SetFloat(_animIDMotionSpeed, inputMagnitude);
+                _animator.SetBool("Crouched", crouched);
             }
         }
 
+        private void UpdateControllerCollider()
+        {
+            Vector3 targetCenter = standCenter;
+            float targetHieght = standHeight;
+
+            if (crouched)
+            {
+                targetCenter = crouchCenter;
+                targetHieght = crouchHeight;    
+            }
+
+            _controller.height = Mathf.Lerp(_controller.height, targetHieght, crouchTransitionSpeed * Time.deltaTime);
+            _controller.center = Vector3.Lerp(_controller.center, targetCenter, crouchTransitionSpeed * Time.deltaTime);
+        }
         public void JumpAndGravity()
         {
             if (Grounded)
@@ -316,16 +365,25 @@ namespace StarterAssets
                 }
 
                 // Jump
-                if (_input.jump && _jumpTimeoutDelta <= 0.0f)
+                if (_input.jump && _jumpTimeoutDelta <= 0.0f && !_animator.IsInTransition(0) )
                 {
-                    // the square root of H * -2 * G = how much velocity needed to reach desired height
-                    _verticalVelocity = Mathf.Sqrt(JumpHeight * -2f * Gravity);
-
-                    // update animator if using character
-                    if (_hasAnimator)
+                    _input.jump = false;
+                    if (!crouched)
                     {
-                        _animator.SetBool(_animIDJump, true);
+                        // the square root of H * -2 * G = how much velocity needed to reach desired height
+                        _verticalVelocity = Mathf.Sqrt(JumpHeight * -2f * Gravity);
+
+                        // update animator if using character
+                        if (_hasAnimator)
+                        {
+                            _animator.SetBool(_animIDJump, true);
+                        }
                     }
+                    else if (crouched)
+                    {
+                        crouched = false;
+                    }
+                    
                 }
 
                 // jump timeout
@@ -364,37 +422,28 @@ namespace StarterAssets
             }
         }
 
-        private void crouch()
+        public void attackCreature()
         {
-            if (Grounded)
+            
+            if (SceneManager.GetActiveScene().name == "PlayerScene")
             {
-                if (crouchAction.action.WasPressedThisFrame())
-                {
-                    if (!crouching)
-                    {
-                        playerCapsuleCollider.transform.localScale = playerCapsuleCollider.transform.localScale / 2;
-                        Vector3 locPos = playerCapsuleCollider.transform.localPosition;
-                        locPos = new (locPos.x, locPos.y/2, locPos.z);
-                        oldMoveSpeed = MoveSpeed;
-                        MoveSpeed = MoveSpeed / 2;
-                        oldSprintSpeed = SprintSpeed;
-                        SprintSpeed = SprintSpeed / 2;
-                        crouching = true;
-
-
-                    }
-                    else
-                    {
-                        playerCapsuleCollider.transform.localScale = playerCapsuleCollider.transform.localScale * 2;
-                        Vector3 locPos = playerCapsuleCollider.transform.localPosition;
-                        locPos = new(locPos.x, locPos.y * 2, locPos.z);
-                        MoveSpeed = oldMoveSpeed;
-                        SprintSpeed = oldSprintSpeed;
-                        crouching = false;
-                    }
-                }
+                InvasionManager.instance.HandlePlayerDamage(_attackHitboxScript.enemy, 10);
+            }
+            else if (SceneManager.GetActiveScene().name == "PlayerPTScene")
+            {
+                PlaytestManager.instance.HandlePlayerDamage(_attackHitboxScript.enemy, 10);
             }
         }
+
+        public void takeDamage(int damageAmount)
+        {
+            health -= damageAmount;
+
+            if (health <= 0) SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+
+        }
+
+
 
         private static float ClampAngle(float lfAngle, float lfMin, float lfMax)
         {

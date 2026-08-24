@@ -309,7 +309,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::InvasionManager
   buildingRegistry: {fileID: 11400000, guid: 8611640962fc7d94395d8ea48706d185, type: 2}
   gridSize: 1
-  playerPrefab: {fileID: 3218483124854253942, guid: b51006bf9ff04f0469de00745ee58dda, type: 3}
+  playerPrefab: {fileID: 6228255292951844748, guid: b51006bf9ff04f0469de00745ee58dda, type: 3}
   enemyPrefab: {fileID: 5099302634467425260, guid: edc703493ec58e64abf8d2c7ae367156, type: 3}
   UIcam: {fileID: 958114155}
   playerSpawnPoint: {fileID: 24788104}

@@ -1,9 +1,10 @@
+using StarterAssets;
 using UnityEngine;
 
 public class bullet : MonoBehaviour
 {
     float speed;
-    float damage;
+    int damage;
 
     public void Initalize(int dmg, float spd)
     {
@@ -20,7 +21,10 @@ public class bullet : MonoBehaviour
 
     public void HandleHit(Collider other)
     {
-        //Destroy(gameObject);
-        print("destroyed bullet");
+        if (other.gameObject.name == "PlayerCapsule")
+        {
+            ThirdPersonController player = other.GetComponent<ThirdPersonController>();
+            player.takeDamage(damage);
+        }
     }
 }

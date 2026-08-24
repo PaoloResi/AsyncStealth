@@ -189,12 +189,13 @@ public class GridSystem : MonoBehaviour
             }
             if (Mouse.current.leftButton.wasPressedThisFrame && hoveredObject)
             {
+                buildingsCanvas.SetActive(true);
                 Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
 
                 if (Physics.Raycast(ray, out RaycastHit hit) && (hit.transform.CompareTag("Ground") || !moveMode))
                 {
                     moveMode = !moveMode;
-                    hoveredObject.GetComponent<Collider>().enabled = !hoveredObject.GetComponent<Collider>().enabled;
+                    hoveredObject.GetComponentInChildren<Collider>().enabled = !hoveredObject.GetComponentInChildren<Collider>().enabled;
 
                     List<BuildingPiece> size = GetObjectSize(hoveredObject);
                     int rotation = GetObjectRotation(hoveredObject);
@@ -210,6 +211,7 @@ public class GridSystem : MonoBehaviour
 
             if (moveMode && hoveredObject)
             {
+                buildingsCanvas.SetActive(false);
                 UpdateHoveredObjPos();
             }
         }
