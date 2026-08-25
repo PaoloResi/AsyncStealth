@@ -3,6 +3,7 @@
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.XR;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 using static UnityEditor.SceneView;
 #endif
 
@@ -156,6 +157,8 @@ namespace StarterAssets
             }
         }
 
+        [SerializeField] private Slider healthSlider;
+
 
         private void Awake()
         {
@@ -188,6 +191,8 @@ namespace StarterAssets
             // Crouch Values
             standCenter = _controller.center;
             standHeight = _controller.height;
+
+            healthSlider.value = health;
         }
 
         private void Update()
@@ -438,6 +443,7 @@ namespace StarterAssets
         public void takeDamage(int damageAmount)
         {
             health -= damageAmount;
+            healthSlider.value = health;
 
             if (health <= 0) SceneManager.LoadScene(SceneManager.GetActiveScene().name);
 

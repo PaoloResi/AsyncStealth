@@ -117,6 +117,7 @@ public class PlaytestManager : MonoBehaviour
     {
         foreach (Collider enemy in enemyList)
         {
+            print("attacked enemy");
             EnemyController controller = enemy.gameObject.GetComponent<EnemyController>();
             controller.TakeDamage(damage);
         }

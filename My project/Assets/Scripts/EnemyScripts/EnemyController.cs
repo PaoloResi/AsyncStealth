@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.AI;
+using UnityEngine.UI;
 
 public class EnemyController : MonoBehaviour
 {
@@ -49,6 +50,7 @@ public class EnemyController : MonoBehaviour
 
     public RaycastHit attackHit;
     private GunLogic gunLogic;
+    [SerializeField] private Slider enemyHealthBar;
 
 
 
@@ -60,6 +62,7 @@ public class EnemyController : MonoBehaviour
         player = GameObject.Find("PlayerCapsule").transform;
         gunLogic = GetComponentInChildren<GunLogic>();
 
+        enemyHealthBar.value = health;
     }
 
     private void Update()
@@ -84,7 +87,11 @@ public class EnemyController : MonoBehaviour
                 else
                 {
                     FacePlayer();
-                    if (state == State.Patrol) agent.SetDestination(transform.position);
+                    if (state == State.Patrol)
+                    {
+                        state = State.Search;
+                        agent.SetDestination(transform.position);
+                    }
                 }
             }
 
@@ -109,6 +116,8 @@ public class EnemyController : MonoBehaviour
             }
             
         }
+
+        //print(state);
 
         switch (state)
         {
@@ -171,8 +180,8 @@ public class EnemyController : MonoBehaviour
 
     private bool CanSeePlayer (out float distance)
     {
-        Vector3 eye = transform.position;
-        Vector3 target = player.position;
+        Vector3 eye = transform.position + Vector3.up * eyeHeight;
+        Vector3 target = player.position + Vector3.up * eyeHeight;
         Vector3 toPlayer = target - eye;
         distance = toPlayer.magnitude;
 
@@ -204,7 +213,7 @@ public class EnemyController : MonoBehaviour
 
         if (!alreadyAttacked)
         {
-            gunLogic.shoot();
+            gunLogic.shoot(player);
             alreadyAttacked = true;
             Invoke(nameof(ResetAttack), timeBetweenAttack);
         }
@@ -264,7 +273,7 @@ public class EnemyController : MonoBehaviour
 
     private void FacePlayer()
     {
-        Vector3 lookAt = new Vector3 (player.position.x, transform.position.y, transform.position.z);
+        Vector3 lookAt = new Vector3 (player.position.x, transform.position.y, player.position.z);
         transform.LookAt(lookAt);
     }
 
@@ -277,6 +286,7 @@ public class EnemyController : MonoBehaviour
         else
         {
             health -= damage;
+            enemyHealthBar.value = health;
         }
 
         if (health <= 0) Invoke(nameof(DestroyEnemy), 0.5f);

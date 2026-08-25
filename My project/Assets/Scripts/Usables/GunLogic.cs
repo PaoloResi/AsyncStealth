@@ -22,9 +22,10 @@ public class GunLogic : MonoBehaviour
         //shoot();
     }
 
-    public void shoot()
+    public void shoot(Transform player)
     {
-        
+        Vector3 aimPoint = player.position + Vector3.up * 1f;
+        bulletSpawn.LookAt(aimPoint);
         GameObject bullet = Instantiate(bulletPrefab, bulletSpawn.position, bulletSpawn.rotation);
         bullet.GetComponent<bullet>().Initalize(10, 100);
 

@@ -7,8 +7,9 @@ public class AttackHitboxScript : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.transform.gameObject.name == "Capsule")
+        if (other.gameObject.tag == "Enemy")
         {
+            print("enemy added to list");
             enemy.Add(other);
         }
     }
@@ -17,6 +18,7 @@ public class AttackHitboxScript : MonoBehaviour
     {
         if (enemy.Contains(other))
         {
+            print("enemy removed from list");
             enemy.Remove(other);
         }
     }
