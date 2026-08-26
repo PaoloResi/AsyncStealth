@@ -7,6 +7,7 @@ TagManager:
   - Building
   - Ground
   - CinemachineTarget
+  - Enemy
   layers:
   - Default
   - TransparentFX
