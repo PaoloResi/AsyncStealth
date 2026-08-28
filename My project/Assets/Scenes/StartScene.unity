@@ -416,7 +416,7 @@ RectTransform:
   m_GameObject: {fileID: 34950123}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 11.494271, y: 9.5295, z: 1}
+  m_LocalScale: {x: 39.77248, y: 15.365366, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 357257150}
@@ -1407,6 +1407,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GameManager
   savesList:
     Saves: []
+  uploadList:
+    Saves: []
+  tempSave:
+    buildings: []
+    patrols: []
+  testing: 0
+  uploading: 0
+  returning: 0
 --- !u!4 &1753751990
 Transform:
   m_ObjectHideFlags: 0

@@ -117,7 +117,6 @@ public class EnemyController : MonoBehaviour
             
         }
 
-        //print(state);
 
         switch (state)
         {

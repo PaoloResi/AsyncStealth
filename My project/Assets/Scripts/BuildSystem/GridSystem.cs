@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem; 
 
@@ -32,6 +33,7 @@ public class GridSystem : MonoBehaviour
     private Coroutine activeMessage;
 
     [SerializeField] private SceneHandler sceneHandler;
+    [SerializeField] private LayerMask groundLayer;
 
 
     public void Start()
@@ -185,17 +187,22 @@ public class GridSystem : MonoBehaviour
         else
         {   if (!moveMode)
             {
-                highlightHover(Color.white);
+                highlightHover(new Color(1f, 0.9f, 0.4f));
             }
             if (Mouse.current.leftButton.wasPressedThisFrame && hoveredObject)
             {
                 buildingsCanvas.SetActive(true);
                 Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
 
-                if (Physics.Raycast(ray, out RaycastHit hit) && (hit.transform.CompareTag("Ground") || !moveMode))
+                if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, groundLayer) && (hit.transform.CompareTag("Ground") || !moveMode))
                 {
                     moveMode = !moveMode;
-                    hoveredObject.GetComponentInChildren<Collider>().enabled = !hoveredObject.GetComponentInChildren<Collider>().enabled;
+                    Collider[] allColliders = hoveredObject.GetComponentsInChildren<Collider>();
+
+                    foreach (Collider collider in allColliders)
+                    {
+                        collider.enabled = !collider.enabled;
+                    }
 
                     List<BuildingPiece> size = GetObjectSize(hoveredObject);
                     int rotation = GetObjectRotation(hoveredObject);
@@ -317,8 +324,7 @@ public class GridSystem : MonoBehaviour
     public void UpdateHoveredObjPos()
     {
         Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
-
-        if (Physics.Raycast(ray, out RaycastHit hit))
+        if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, groundLayer))
         {
             foreach (MeshRenderer child in hoveredObject.GetComponentsInChildren<MeshRenderer>())
             {
@@ -332,8 +338,8 @@ public class GridSystem : MonoBehaviour
 
 
             if (AreCellsFree(WorldToCell(hit.point), GetObjectSize(hoveredObject), GetObjectRotation(hoveredObject)))
-                SetColor(new Color(1f, 1f, 1f, 0.5f));
-            else
+                SetColor(Color.white);
+            else 
                 SetColor(Color.red);
 
             if (!hit.transform.CompareTag("Ground"))

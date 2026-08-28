@@ -32,7 +32,7 @@ public class BuildManager : MonoBehaviour
             Destroy(this);
         }
 
-
+        Cursor.visible = true;
     }
 
     // Update is called once per frame

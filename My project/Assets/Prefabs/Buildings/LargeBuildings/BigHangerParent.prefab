@@ -106,6 +106,22 @@ PrefabInstance:
       propertyPath: m_Name
       value: Hangar2
       objectReference: {fileID: 0}
+    - target: {fileID: 965706651898568997, guid: 4ec28902914d13545b2a2e107b4687ed, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4604305110034805489, guid: 4ec28902914d13545b2a2e107b4687ed, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7365398610132320299, guid: 4ec28902914d13545b2a2e107b4687ed, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7427154787491949374, guid: 4ec28902914d13545b2a2e107b4687ed, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
