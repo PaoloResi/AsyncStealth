@@ -32,6 +32,7 @@ public class GameManager : MonoBehaviour
     void Start()
     {
         string path = System.IO.Path.Combine(Application.persistentDataPath, "Savedbuilds.json");
+        string path2 = System.IO.Path.Combine(Application.persistentDataPath, "Uploaded.json");
 
         if (File.Exists(path))
         {
@@ -42,6 +43,17 @@ public class GameManager : MonoBehaviour
         {
             string json = JsonUtility.ToJson(savesList, true);
             System.IO.File.WriteAllText(path, json);
+        }
+
+        if (File.Exists(path2))
+        {
+            string json2 = System.IO.File.ReadAllText(path2);
+            uploadList = JsonUtility.FromJson<SavesList>(json2);
+        }
+        else
+        {
+            string json2 = JsonUtility.ToJson(uploadList, true);
+            System.IO.File.WriteAllText(path2, json2);
         }
 
     }

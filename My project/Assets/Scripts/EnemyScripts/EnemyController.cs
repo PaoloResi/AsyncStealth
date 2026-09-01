@@ -29,7 +29,7 @@ public class EnemyController : MonoBehaviour
     public bool playerInSightRange, playerInAttackRange;
 
     private State state = State.Patrol;
-    private Vector3 lastKnownPosition;
+    public Vector3 lastKnownPosition;
     private float searchTimer;
     private float searchDuration = 6f;
     private float searchRadius = 3f;
