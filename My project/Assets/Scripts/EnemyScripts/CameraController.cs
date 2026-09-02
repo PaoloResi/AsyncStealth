@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class CameraController : MonoBehaviour
 {
@@ -31,69 +32,74 @@ public class CameraController : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        player = GameObject.Find("PlayerCapsule").transform;
-        startYaw = transform.eulerAngles.y;
-        enemyControllers = FindObjectsByType<EnemyController>(FindObjectsSortMode.None);
-
+        if (SceneManager.GetActiveScene().name != "BuildingScene")
+        {
+            player = GameObject.Find("PlayerCapsule").transform;
+            startYaw = transform.eulerAngles.y;
+            enemyControllers = FindObjectsByType<EnemyController>(FindObjectsSortMode.None);
+        }
     }
 
     // Update is called once per frame
     void Update()
     {
-        bool canSee = CanSeePlayer(out float distance);
-        print(canSee);
-
-        if (canSee)
+        if (SceneManager.GetActiveScene().name != "BuildingScene")
         {
-            state = State.Looking;
-            decayDelayTimer = decayDelay;
+            bool canSee = CanSeePlayer(out float distance);
+            print(canSee);
 
-            if (!alerted)
+            if (canSee)
             {
-                detectionMeter += DetectionRate(distance) * Time.deltaTime;
+                state = State.Looking;
+                decayDelayTimer = decayDelay;
 
-                if (detectionMeter >= 1f)
+                if (!alerted)
                 {
-                    detectionMeter = 1f;
-                    alerted = true;
+                    detectionMeter += DetectionRate(distance) * Time.deltaTime;
+
+                    if (detectionMeter >= 1f)
+                    {
+                        detectionMeter = 1f;
+                        alerted = true;
+                    }
+                }
+
+                if (alerted)
+                {
+                    state = State.Found;
+                }
+
+            }
+            else
+            {
+                if (decayDelayTimer > 0f) decayDelayTimer -= Time.deltaTime;
+                else detectionMeter = Mathf.Max(0f, detectionMeter - decayRate * Time.deltaTime);
+
+                if (detectionMeter <= 0f)
+                {
+                    alerted = false;
+                    state = State.Search;
                 }
             }
 
-            if (alerted)
+            print(state);
+
+            switch (state)
             {
-                state = State.Found;
+                case State.Search:
+                    Move();
+                    break;
+                case State.Looking:
+                    break;
+                case State.Found:
+                    GameObject nearestEnemy = FindNearestEnemy();
+                    if (nearestEnemy != null)
+                    {
+                        nearestEnemy.GetComponent<EnemyController>().lastKnownPosition = player.position;
+                    }
+                    FacePlayer();
+                    break;
             }
-           
-        }
-        else
-        {
-            if (decayDelayTimer > 0f) decayDelayTimer -= Time.deltaTime;
-            else detectionMeter = Mathf.Max(0f, detectionMeter - decayRate * Time.deltaTime);
-
-            if (detectionMeter <= 0f)
-            {
-                alerted = false;
-                state = State.Search;
-            }
-        }
-
-        print(state);
-
-        switch (state)
-        {
-            case State.Search:
-                Move();
-                break;
-            case State.Looking:
-                break;
-            case State.Found:
-                GameObject nearestEnemy = FindNearestEnemy();
-                if (nearestEnemy != null)
-                {
-                    nearestEnemy.GetComponent<EnemyController>().lastKnownPosition = player.position;
-                }
-                FacePlayer();
-                break;
         }
 
     }
