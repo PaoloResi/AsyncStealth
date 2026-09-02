@@ -7,6 +7,8 @@ public class CameraMovement : MonoBehaviour
     private const float YMin = -50.0f;
     private const float YMax = 50.0f;
 
+    [SerializeField] private Vector3 targetOffset = new Vector3(0f, 1.6f, 0f);
+
 
     public float distance = 10.0f;
     private float currentX = 0.0f;
@@ -27,9 +29,11 @@ public class CameraMovement : MonoBehaviour
 
         currentY = Mathf.Clamp(currentY, YMin, YMax);
 
+        Vector3 pivot = target.position + targetOffset;
+
         Vector3 Direction = new Vector3(0, 0, -distance);
         Quaternion rotation = Quaternion.Euler(currentY, currentX, 0);
-        transform.position = target.position + rotation * Direction;
+        transform.position = pivot + rotation * Direction;
 
         transform.LookAt(target.position);
     }

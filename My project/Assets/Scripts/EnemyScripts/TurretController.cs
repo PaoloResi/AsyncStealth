@@ -28,6 +28,7 @@ public class TurretController : MonoBehaviour
     private GunLogic gunLogic;
     bool alreadyAttacked;
     public float timeBetweenAttack;
+    public Transform gunHead;
 
 
 
@@ -45,6 +46,8 @@ public class TurretController : MonoBehaviour
     void Update()
     {
         bool canSee = CanSeePlayer(out float distance);
+
+        print(canSee);
 
         if (canSee)
         {
@@ -79,6 +82,8 @@ public class TurretController : MonoBehaviour
                 state = State.Search;
             }
         }
+
+        print(state);
 
         switch (state)
         {
@@ -126,7 +131,7 @@ public class TurretController : MonoBehaviour
     private void Move()
     {
         float offset = Mathf.Sin(Time.time * speed) * sweepAngle;
-        transform.rotation = Quaternion.Euler(0f, startYaw + offset, 0f);
+        gunHead.rotation = Quaternion.Euler(0f, startYaw + offset, 0f);
     }
 
     public void AttackPlayer()
@@ -148,7 +153,7 @@ public class TurretController : MonoBehaviour
 
     private void FacePlayer()
     {
-        Vector3 toPlayer = player.position - transform.position;
+        Vector3 toPlayer = player.position - gunHead.position;
         toPlayer.y = 0f;
         if (toPlayer.sqrMagnitude < 0.0001f) return;
 
@@ -157,7 +162,7 @@ public class TurretController : MonoBehaviour
         float delta = Mathf.DeltaAngle(startYaw, desiredYaw);
         float clamped = Mathf.Clamp(delta, -60f, 60f);
 
-        transform.rotation = Quaternion.Euler(0f, startYaw + clamped, 0f);
+        gunHead.rotation = Quaternion.Euler(0f, startYaw + clamped, 0f);
     }
 
 }

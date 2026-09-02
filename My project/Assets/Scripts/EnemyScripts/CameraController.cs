@@ -26,6 +26,7 @@ public class CameraController : MonoBehaviour
     float speed = 1f;
     float startYaw;
     EnemyController[] enemyControllers;
+    public Transform camHead;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -40,6 +41,7 @@ public class CameraController : MonoBehaviour
     void Update()
     {
         bool canSee = CanSeePlayer(out float distance);
+        print(canSee);
 
         if (canSee)
         {
@@ -75,6 +77,8 @@ public class CameraController : MonoBehaviour
             }
         }
 
+        print(state);
+
         switch (state)
         {
             case State.Search:
@@ -88,6 +92,7 @@ public class CameraController : MonoBehaviour
                 {
                     nearestEnemy.GetComponent<EnemyController>().lastKnownPosition = player.position;
                 }
+                FacePlayer();
                 break;
         }
 
@@ -121,17 +126,24 @@ public class CameraController : MonoBehaviour
 
         foreach (EnemyController potentialTarget in enemyControllers)
         {
-            Transform potentialTargetTransform = potentialTarget.transform;
-            Vector3 directionToTarget = potentialTargetTransform.position - currentPosition;
-            float dSqrToTarget = directionToTarget.sqrMagnitude;
-            if (dSqrToTarget < closesDistanceSqr)
+            if (potentialTarget.health > 0)
             {
-                closesDistanceSqr = dSqrToTarget;
-                bestTarget = potentialTargetTransform;
+                Transform potentialTargetTransform = potentialTarget.transform;
+                Vector3 directionToTarget = potentialTargetTransform.position - currentPosition;
+                float dSqrToTarget = directionToTarget.sqrMagnitude;
+                if (dSqrToTarget < closesDistanceSqr)
+                {
+                    closesDistanceSqr = dSqrToTarget;
+                    bestTarget = potentialTargetTransform;
+                }
             }
+            
         }
-
-        return bestTarget.gameObject;
+        if (bestTarget != null)
+        {
+            return bestTarget.gameObject;
+        }
+        else return null;
     }
 
     private float DetectionRate(float distance)
@@ -145,7 +157,21 @@ public class CameraController : MonoBehaviour
     private void Move()
     {
         float offset = Mathf.Sin(Time.time * speed) * sweepAngle;
-        transform.rotation = Quaternion.Euler(0f, startYaw + offset, 0f);
+        camHead.rotation = Quaternion.Euler(0f, startYaw + offset, 0f);
+    }
+
+    private void FacePlayer()
+    {
+        Vector3 toPlayer = player.position - camHead.position;
+        toPlayer.y = 0f;
+        if (toPlayer.sqrMagnitude < 0.0001f) return;
+
+        float desiredYaw = Mathf.Atan2(toPlayer.x, toPlayer.z) * Mathf.Rad2Deg;
+
+        float delta = Mathf.DeltaAngle(startYaw, desiredYaw);
+        float clamped = Mathf.Clamp(delta, -60f, 60f);
+
+        camHead.rotation = Quaternion.Euler(0f, startYaw + clamped, 0f);
     }
 
 }

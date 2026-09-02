@@ -44,7 +44,8 @@ public class GridSystem : MonoBehaviour
             GameManager.instance.returning = false;
         }
 
-
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
     }
 
     public void SetObjectToPlace(GameObject objToPlace)
@@ -671,7 +672,7 @@ public class GridSystem : MonoBehaviour
 
         }
         //print(endPoint.name);
-        if (endPoint.name == null)
+        if (endPoint == null)
         {
             if (activeMessage != null)
             {
