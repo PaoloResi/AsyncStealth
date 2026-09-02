@@ -157,10 +157,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 93cbd28b0fd38dc479f887233f680c0c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PatrolIdentity
-  buildId: Patrol_004
+  buildId: Patrol
   locInfo:
   - offset: {x: 0, y: 0, z: 0}
     size: {x: 1, y: 0, z: 1}
   rotation: 0
-  previousPoint: {fileID: 0}
-  nextPoint: {fileID: 0}
+  RouteID: 
+  PointID: 
+  previousPoint: 
+  nextPoint: 

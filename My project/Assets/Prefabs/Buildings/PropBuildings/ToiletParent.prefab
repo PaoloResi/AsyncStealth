@@ -45,7 +45,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 44e2556b453c4c54297734640a80e92b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BuildingIdentity
-  buildId: 
+  buildId: Toilet
   locInfo:
   - offset: {x: 0, y: 0, z: 0}
     size: {x: 2, y: 0, z: 2}
