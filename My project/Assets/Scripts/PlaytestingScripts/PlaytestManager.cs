@@ -112,7 +112,7 @@ public class PlaytestManager : MonoBehaviour
         {
             GameManager.instance.uploadList.Saves.Add(GameManager.instance.tempSave);
             string json2 = JsonUtility.ToJson(GameManager.instance.uploadList, true);
-            string path2 = System.IO.Path.Combine(Application.persistentDataPath, "Uploaded.json");
+            string path2 = System.IO.Path.Combine(Directory.GetParent(Application.dataPath).FullName, "Uploaded.json");
             System.IO.File.WriteAllText(path2, json2);
         }
         sceneHandler.loadScene("BuildingScene");

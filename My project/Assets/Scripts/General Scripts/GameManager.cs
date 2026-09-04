@@ -1,6 +1,4 @@
-using System.Collections.Generic;
 using System.IO;
-using UnityEditor.Overlays;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -31,8 +29,9 @@ public class GameManager : MonoBehaviour
     
     void Start()
     {
-        string path = System.IO.Path.Combine(Application.persistentDataPath, "Savedbuilds.json");
-        string path2 = System.IO.Path.Combine(Application.persistentDataPath, "Uploaded.json");
+        string path = System.IO.Path.Combine(Directory.GetParent(Application.dataPath).FullName, "Savedbuilds.json");
+        print(path);
+        string path2 = System.IO.Path.Combine(Directory.GetParent(Application.dataPath).FullName, "Uploaded.json");
 
         if (File.Exists(path))
         {
@@ -74,7 +73,9 @@ public class GameManager : MonoBehaviour
     //    //added this to ensure things get saved but may cause issues
     //    Debug.Log("gameexited");
     //    string json = JsonUtility.ToJson(GameManager.instance.savesList, true);
-    //    string path = System.IO.Path.Combine(Application.persistentDataPath, "Savedbuilds.json");
+    //    string path = System.IO.
+    //
+    //    .Combine(Application.persistentDataPath, "Savedbuilds.json");
     //    System.IO.File.WriteAllText(path, json);
     //    Application.Quit();
     //}

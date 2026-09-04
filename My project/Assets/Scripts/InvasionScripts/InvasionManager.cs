@@ -55,7 +55,7 @@ public class InvasionManager : MonoBehaviour
     {
         patrolPointsDic.Clear();
 
-        BuildingDataList saveData = GameManager.instance.savesList.Saves[saveNum];
+        BuildingDataList saveData = GameManager.instance.uploadList.Saves[saveNum];
 
         foreach (BuildingData data in saveData.buildings)
         {
