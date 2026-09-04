@@ -586,13 +586,14 @@ MonoBehaviour:
   whatIsPlayer:
     serializedVersion: 2
     m_Bits: 8
-  timeBetweenAttack: 1
+  timeBetweenAttack: 4
   sightRange: 20
   attackRange: 12
   sightAngle: 60
   eyeHeight: 1
   playerInSightRange: 0
   playerInAttackRange: 0
+  lastKnownPosition: {x: 0, y: 0, z: 0}
   detectionMeter: 0
   baseFillRate: 0.35
   closeFillMultiplier: 4

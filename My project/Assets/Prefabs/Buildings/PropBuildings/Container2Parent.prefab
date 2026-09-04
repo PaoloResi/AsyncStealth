@@ -58,6 +58,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 5563886889592764884}
     m_Modifications:
+    - target: {fileID: -2949171023063413413, guid: 51faba9de6c4dec499159d098b08de3b, type: 3}
+      propertyPath: m_Mesh
+      value: 
+      objectReference: {fileID: -5685363115531012651, guid: 89d2a16bcc033e340813aa856672d825, type: 3}
     - target: {fileID: 5116050351647496849, guid: 51faba9de6c4dec499159d098b08de3b, type: 3}
       propertyPath: m_Name
       value: Container2

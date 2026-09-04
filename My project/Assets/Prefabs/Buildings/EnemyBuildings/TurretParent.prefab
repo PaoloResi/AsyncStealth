@@ -189,7 +189,7 @@ MonoBehaviour:
   detectionMeter: 0
   decayRate: 0.25
   decayDelay: 0.5
-  timeBetweenAttack: 3
+  timeBetweenAttack: 2
   gunHead: {fileID: 5067249693827169138}
 --- !u!1 &5067249693826869074 stripped
 GameObject:
