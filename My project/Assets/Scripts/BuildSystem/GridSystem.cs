@@ -637,6 +637,7 @@ public class GridSystem : MonoBehaviour
 
             BuildManager.instance.buildCount++;
         }
+        routeValue = CheckRouteValue();
     }
 
 
