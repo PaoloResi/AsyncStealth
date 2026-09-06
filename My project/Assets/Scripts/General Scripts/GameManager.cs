@@ -68,15 +68,16 @@ public class GameManager : MonoBehaviour
         SceneManager.LoadScene(SceneName);
     }
 
-    //private void OnApplicationQuit()
-    //{
-    //    //added this to ensure things get saved but may cause issues
-    //    Debug.Log("gameexited");
-    //    string json = JsonUtility.ToJson(GameManager.instance.savesList, true);
-    //    string path = System.IO.
-    //
-    //    .Combine(Application.persistentDataPath, "Savedbuilds.json");
-    //    System.IO.File.WriteAllText(path, json);
-    //    Application.Quit();
-    //}
+    private void OnApplicationQuit()
+    {
+        string json = JsonUtility.ToJson(GameManager.instance.savesList, true);
+        string path = System.IO.Path.Combine(Directory.GetParent(Application.dataPath).FullName, "Savedbuilds.json");
+
+        string json2 = JsonUtility.ToJson(GameManager.instance.uploadList, true);
+        string path2 = System.IO.Path.Combine(Directory.GetParent(Application.dataPath).FullName, "Uploaded.json");
+
+        System.IO.File.WriteAllText(path, json);
+        System.IO.File.WriteAllText(path2, json2);
+        Application.Quit();
+    }
 }
