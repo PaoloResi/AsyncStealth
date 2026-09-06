@@ -507,20 +507,47 @@ public class GridSystem : MonoBehaviour
             occupiedPositions.Remove(c);
         if (hoveredObject.GetComponent<PatrolIdentity>() != null)
         {
-            PatrolIdentity previousPatrolIdentity = PatrolPointDic.TryGetValue(hoveredObject.GetComponent<PatrolIdentity>().previousPoint, out PatrolIdentity prev) ? prev : null;
-            PatrolIdentity nextPatrolIdentity = PatrolPointDic.TryGetValue(hoveredObject.GetComponent<PatrolIdentity>().nextPoint, out PatrolIdentity next) ? next : null;
+            //PatrolIdentity previousPatrolIdentity = PatrolPointDic.TryGetValue(hoveredObject.GetComponent<PatrolIdentity>().previousPoint, out PatrolIdentity prev) ? prev : null;
+            //PatrolIdentity nextPatrolIdentity = PatrolPointDic.TryGetValue(hoveredObject.GetComponent<PatrolIdentity>().nextPoint, out PatrolIdentity next) ? next : null;
 
             //print(previousPatrolIdentity.RouteID + previousPatrolIdentity.PointID);
             //print(nextPatrolIdentity.RouteID + nextPatrolIdentity.PointID);
+            var identity = hoveredObject.GetComponent<PatrolIdentity>();
+            if (identity == null)
+                return;
+
+            PatrolIdentity previousPatrolIdentity = null;
+            if (identity.previousPoint != null &&
+                PatrolPointDic.TryGetValue(identity.previousPoint, out var prev))
+            {
+                previousPatrolIdentity = prev;
+            }
+
+            PatrolIdentity nextPatrolIdentity = null;
+            if (identity.nextPoint != null &&
+                PatrolPointDic.TryGetValue(identity.nextPoint, out var next))
+            {
+                nextPatrolIdentity = next;
+            }
 
             if (previousPatrolIdentity != null)
             {
-                previousPatrolIdentity.nextPoint = nextPatrolIdentity.RouteID + nextPatrolIdentity.PointID;
+                if (nextPatrolIdentity != null)
+                {
+                    previousPatrolIdentity.nextPoint = nextPatrolIdentity.RouteID + nextPatrolIdentity.PointID;
+                }
+                else previousPatrolIdentity.nextPoint = null;
             }
+            else 
 
             if (nextPatrolIdentity != null)
             {
-                nextPatrolIdentity.previousPoint = previousPatrolIdentity.RouteID + previousPatrolIdentity.PointID;
+                if (previousPatrolIdentity != null)
+                {
+                    nextPatrolIdentity.previousPoint = previousPatrolIdentity.RouteID + previousPatrolIdentity.PointID;
+
+                }
+                else nextPatrolIdentity.previousPoint = null;
             }
         }
 
