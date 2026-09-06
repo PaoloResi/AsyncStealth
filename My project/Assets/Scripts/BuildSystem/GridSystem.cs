@@ -44,6 +44,9 @@ public class GridSystem : MonoBehaviour
             GameManager.instance.returning = false;
         }
 
+        routeValue = CheckRouteValue();
+        print(routeValue);
+
         Cursor.visible = true;
         Cursor.lockState = CursorLockMode.None;
     }
@@ -746,5 +749,24 @@ public class GridSystem : MonoBehaviour
         yield return new WaitForSeconds(duration);
         messageText.text = "";
         activeMessage = null;
+    }
+
+    private string CheckRouteValue()
+    {
+        string routeValueCheck = "A";
+        GameObject[] placedBuildings = GameObject.FindGameObjectsWithTag("Building");
+
+        foreach(GameObject placedBuilding in placedBuildings)
+        {
+            if (placedBuilding.GetComponent<PatrolIdentity>() != null)
+            {
+                if (string.Compare(routeValueCheck, placedBuilding.GetComponent<PatrolIdentity>().RouteID) < 0) 
+                {
+                    routeValueCheck = ((char)(placedBuilding.GetComponent<PatrolIdentity>().RouteID[0] + 1)).ToString();
+                }
+            }
+        }
+
+        return routeValueCheck;
     }
 }
