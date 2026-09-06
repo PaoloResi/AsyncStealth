@@ -3,6 +3,62 @@
         {
             "buildings": [
                 {
+                    "ID": "EndPoint",
+                    "position": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 16.0
+                    },
+                    "rotation": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0,
+                        "w": 1.0
+                    }
+                }
+            ],
+            "patrols": [
+                {
+                    "ID": "Patrol",
+                    "position": {
+                        "x": -7.0,
+                        "y": 1.0,
+                        "z": 9.0
+                    },
+                    "rotation": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0,
+                        "w": 1.0
+                    },
+                    "RouteID": "A",
+                    "PointID": "0",
+                    "previousPointID": "",
+                    "nextPointID": "A1"
+                },
+                {
+                    "ID": "Patrol",
+                    "position": {
+                        "x": 2.0,
+                        "y": 1.0,
+                        "z": 10.0
+                    },
+                    "rotation": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0,
+                        "w": 1.0
+                    },
+                    "RouteID": "A",
+                    "PointID": "1",
+                    "previousPointID": "A0",
+                    "nextPointID": ""
+                }
+            ]
+        },
+        {
+            "buildings": [
+                {
                     "ID": "BigHangar",
                     "position": {
                         "x": -1.0,

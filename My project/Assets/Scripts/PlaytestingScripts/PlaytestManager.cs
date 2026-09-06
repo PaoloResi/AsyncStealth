@@ -35,6 +35,7 @@ public class PlaytestManager : MonoBehaviour
         {
             Destroy(this);
         }
+        
     }
 
     private void Awake()

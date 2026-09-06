@@ -480,7 +480,7 @@ public class GridSystem : MonoBehaviour
                 PatrolPointDic.Add(routeValue + pointValue, placed.transform.GetComponent<PatrolIdentity>());
                 placed.transform.GetComponent<PatrolIdentity>().RouteID = routeValue;
                 placed.transform.GetComponent<PatrolIdentity>().PointID = pointValue.ToString();
-                print(placed.transform.GetComponent<PatrolIdentity>().RouteID + placed.transform.GetComponent<PatrolIdentity>().PointID);
+                //print(placed.transform.GetComponent<PatrolIdentity>().RouteID + placed.transform.GetComponent<PatrolIdentity>().PointID);
                 pointValue += 1;
                 if (prevPatrolPoint != null)
                 {
@@ -507,8 +507,8 @@ public class GridSystem : MonoBehaviour
             PatrolIdentity previousPatrolIdentity = PatrolPointDic.TryGetValue(hoveredObject.GetComponent<PatrolIdentity>().previousPoint, out PatrolIdentity prev) ? prev : null;
             PatrolIdentity nextPatrolIdentity = PatrolPointDic.TryGetValue(hoveredObject.GetComponent<PatrolIdentity>().nextPoint, out PatrolIdentity next) ? next : null;
 
-            print(previousPatrolIdentity.RouteID + previousPatrolIdentity.PointID);
-            print(nextPatrolIdentity.RouteID + nextPatrolIdentity.PointID);
+            //print(previousPatrolIdentity.RouteID + previousPatrolIdentity.PointID);
+            //print(nextPatrolIdentity.RouteID + nextPatrolIdentity.PointID);
 
             if (previousPatrolIdentity != null)
             {
@@ -626,6 +626,12 @@ public class GridSystem : MonoBehaviour
             foreach (Vector3 c in GetCells(WorldToCell(instance.transform.position), size, rotation))
                 occupiedPositions.Add(c);
 
+            PatrolIdentity instanceIdentity = instance.GetComponent<PatrolIdentity>();
+            instanceIdentity.RouteID = data.RouteID;
+            instanceIdentity.PointID = data.PointID;
+            instanceIdentity.previousPoint = data.previousPointID;
+            instanceIdentity.nextPoint = data.nextPointID;
+
             BuildManager.instance.buildCount++;
         }
     }
@@ -721,6 +727,12 @@ public class GridSystem : MonoBehaviour
 
             foreach (Vector3 c in GetCells(WorldToCell(instance.transform.position), size, rotation))
                 occupiedPositions.Add(c);
+
+            PatrolIdentity instanceIdentity = instance.GetComponent<PatrolIdentity>();
+            instanceIdentity.RouteID = data.RouteID;
+            instanceIdentity.PointID = data.PointID;
+            instanceIdentity.previousPoint = data.previousPointID;
+            instanceIdentity.nextPoint = data.nextPointID;
 
             BuildManager.instance.buildCount++;
         }
