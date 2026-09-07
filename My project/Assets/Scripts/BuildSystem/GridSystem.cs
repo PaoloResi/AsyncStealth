@@ -387,7 +387,7 @@ public class GridSystem : MonoBehaviour
         Destroy(ghostObject);
         ghostObject = null;
         prevPatrolPoint = null;
-        routeValue = ((char)(routeValue[0] + 1)).ToString();
+        routeValue = CheckRouteValue();
         pointValue = 0;
     }
 
@@ -781,20 +781,45 @@ public class GridSystem : MonoBehaviour
 
     private string CheckRouteValue()
     {
-        string routeValueCheck = "A";
-        GameObject[] placedBuildings = GameObject.FindGameObjectsWithTag("Building");
+        HashSet<string> used = new HashSet<string>();
 
-        foreach(GameObject placedBuilding in placedBuildings)
+        foreach (GameObject placedBuilding in GameObject.FindGameObjectsWithTag("Building"))
         {
-            if (placedBuilding.GetComponent<PatrolIdentity>() != null)
-            {
-                if (string.Compare(routeValueCheck, placedBuilding.GetComponent<PatrolIdentity>().RouteID) < 0) 
-                {
-                    routeValueCheck = ((char)(placedBuilding.GetComponent<PatrolIdentity>().RouteID[0] + 1)).ToString();
-                }
-            }
+            PatrolIdentity identity = placedBuilding.GetComponent<PatrolIdentity>();
+
+            if (identity != null && !string.IsNullOrEmpty(identity.RouteID))
+                used.Add(identity.RouteID);
         }
 
-        return routeValueCheck;
+        string candidate = "A";
+
+        while (used.Contains(candidate))
+            candidate = IncrementRoute(candidate);
+
+        return candidate;
+    }
+
+    private String IncrementRoute(String value)
+    {
+        if (string.IsNullOrEmpty(value))
+        {
+            return "A";
+        }
+
+        char[] chars = value.ToCharArray();
+        int i = chars.Length - 1;
+
+        while (i >= 0)
+        {
+            if (chars[i] != 'Z')
+            {
+                chars[i]++;
+                return new string(chars);
+            }
+
+            chars[i] = 'A';
+            i--;
+        }
+        return "A" + new string(chars);
     }
 }
