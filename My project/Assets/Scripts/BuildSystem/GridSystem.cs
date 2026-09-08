@@ -165,8 +165,8 @@ public class GridSystem : MonoBehaviour
                 StopGhostPosition();
             }
             else
-            { 
-                UpdateGhostPosition(); 
+            {
+                UpdateObjPosition(ghostObject); 
             }
 
         }
@@ -195,35 +195,13 @@ public class GridSystem : MonoBehaviour
             }
             if (Mouse.current.leftButton.wasPressedThisFrame && hoveredObject)
             {
-                buildingsCanvas.SetActive(true);
-                Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
-
-                if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, groundLayer) && (hit.transform.CompareTag("Ground") || !moveMode))
-                {
-                    moveMode = !moveMode;
-                    Collider[] allColliders = hoveredObject.GetComponentsInChildren<Collider>();
-
-                    foreach (Collider collider in allColliders)
-                    {
-                        collider.enabled = !collider.enabled;
-                    }
-
-                    List<BuildingPiece> size = GetObjectSize(hoveredObject);
-                    int rotation = GetObjectRotation(hoveredObject);
-
-                    foreach (Vector3 c in GetCells(hoveredObject.transform.position, size,rotation))
-                    {
-                        if (moveMode) occupiedPositions.Remove(c);
-                        else occupiedPositions.Add(c);
-                    }
-                }
-                
+                PlaceOrSelectHoveredObj();                 
             }
 
             if (moveMode && hoveredObject)
             {
                 buildingsCanvas.SetActive(false);
-                UpdateHoveredObjPos();
+                UpdateObjPosition(hoveredObject);
             }
         }
     }
@@ -277,35 +255,35 @@ public class GridSystem : MonoBehaviour
         
     }
 
-    void UpdateGhostPosition()
+    void UpdateObjPosition(GameObject objToUpdate)
     {
         Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
 
         if (Physics.Raycast(ray, out RaycastHit hit))
         {
-            foreach (MeshRenderer child in ghostObject.GetComponentsInChildren<MeshRenderer>())
+            foreach (MeshRenderer child in objToUpdate.GetComponentsInChildren<MeshRenderer>())
             {
                 child.enabled = true;
             }
-            if (ghostObject.GetComponent<MeshRenderer>() != null)
-                ghostObject.GetComponent<MeshRenderer>().enabled = true;
+            if (objToUpdate.GetComponent<MeshRenderer>() != null)
+                objToUpdate.GetComponent<MeshRenderer>().enabled = true;
             onPlane = true;
 
-            ghostObject.transform.position = WorldToCell(hit.point);
+            objToUpdate.transform.position = WorldToCell(hit.point);
 
             
 
             if (objRotAction.action.WasPressedThisFrame())
             {
-                ghostObject.transform.rotation *= Quaternion.Euler(0, 90, 0);
-                List<BuildingPiece> pieces = ghostObject.GetComponent<BuildingIdentity>().locInfo;
-                int rotation = ghostObject.GetComponent<BuildingIdentity>().rotation;
+                objToUpdate.transform.rotation *= Quaternion.Euler(0, 90, 0);
+                List<BuildingPiece> pieces = objToUpdate.GetComponent<BuildingIdentity>().locInfo;
+                int rotation = objToUpdate.GetComponent<BuildingIdentity>().rotation;
                 rotation = (rotation + 1) % 4;
-                ghostObject.GetComponent<BuildingIdentity>().rotation = rotation;
+                objToUpdate.GetComponent<BuildingIdentity>().rotation = rotation;
 
             }
 
-            if (AreCellsFree(WorldToCell(hit.point), GetObjectSize(ghostObject), GetObjectRotation(ghostObject)))
+            if (AreCellsFree(WorldToCell(hit.point), GetObjectSize(objToUpdate), GetObjectRotation(objToUpdate)))
                 SetColor(new Color(1f, 1f, 1f, 0.5f));
             else
                 SetColor(Color.red);
@@ -316,71 +294,15 @@ public class GridSystem : MonoBehaviour
         else
         {
             onPlane = false;
-            foreach (MeshRenderer child in ghostObject.GetComponentsInChildren<MeshRenderer>())
+            foreach (MeshRenderer child in objToUpdate.GetComponentsInChildren<MeshRenderer>())
             {
                 child.enabled = false;
             }
-            if (ghostObject.GetComponent<MeshRenderer>() != null)
-                ghostObject.GetComponent<MeshRenderer>().enabled = false;
+            if (objToUpdate.GetComponent<MeshRenderer>() != null)
+                objToUpdate.GetComponent<MeshRenderer>().enabled = false;
         }
     }
 
-    public void UpdateHoveredObjPos()
-    {
-        Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
-        if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, groundLayer))
-        {
-            foreach (MeshRenderer child in hoveredObject.GetComponentsInChildren<MeshRenderer>())
-            {
-                child.enabled = true;
-            }
-            if (hoveredObject.GetComponent<MeshRenderer>() != null)
-                hoveredObject.GetComponent<MeshRenderer>().enabled = true;
-            onPlane = true;
-
-            hoveredObject.transform.position = WorldToCell(hit.point);
-
-
-            if (AreCellsFree(WorldToCell(hit.point), GetObjectSize(hoveredObject), GetObjectRotation(hoveredObject)))
-                SetColor(Color.white);
-            else 
-                SetColor(Color.red);
-
-            if (!hit.transform.CompareTag("Ground"))
-                SetColor(Color.red);
-
-
-            if (objRotAction.action.WasPressedThisFrame())
-            {
-                hoveredObject.transform.rotation *= Quaternion.Euler(0, 90, 0);
-                List<BuildingPiece> pieces = hoveredObject.GetComponent<BuildingIdentity>().locInfo;
-                int rotation = hoveredObject.GetComponent<BuildingIdentity>().rotation;
-                rotation = (rotation + 1) % 4;
-                for (int i = 0; i < pieces.Count; i++)
-                {
-                    BuildingPiece buildingpiece = pieces[i];
-                    float tempX = buildingpiece.size.x;
-                    float tempZ = buildingpiece.size.z;
-
-                    buildingpiece.size.x = tempZ;
-                    buildingpiece.size.z = -tempX;
-
-
-
-                }
-            }
-        }
-        else
-        {
-            onPlane = false;
-            foreach (MeshRenderer child in hoveredObject.GetComponentsInChildren<MeshRenderer>())
-            {
-                child.enabled = false;
-            }
-            if (hoveredObject.GetComponent<MeshRenderer>() != null)
-                hoveredObject.GetComponent<MeshRenderer>().enabled = false;
-        }
-    }
 
     public void StopGhostPosition()
     {
@@ -469,7 +391,6 @@ public class GridSystem : MonoBehaviour
                 BuildingIdentity placedID = placed.GetComponent<BuildingIdentity>();
                 placedID.rotation = ghostID.rotation;
                 placedID.locInfo = ghostID.locInfo;
-                placedID.rotation = ghostID.rotation;
 
                 foreach (Vector3 c in GetCells(origin, objInfoList, rotation))
                 {
@@ -496,7 +417,63 @@ public class GridSystem : MonoBehaviour
             }
         }
   
-}
+    }
+
+    void PlaceOrSelectHoveredObj()
+    {
+        buildingsCanvas.SetActive(true);
+        Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
+
+        if (!moveMode)
+        {
+            if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, groundLayer) && hit.transform.CompareTag("Ground"))
+            {
+                Collider[] allColliders = hoveredObject.GetComponentsInChildren<Collider>();
+
+                foreach (Collider collider in allColliders)
+                {
+                    collider.enabled = false;
+                }
+
+                List<BuildingPiece> size = GetObjectSize(hoveredObject);
+                int rotation = GetObjectRotation(hoveredObject);
+               
+                foreach (Vector3 c in GetCells(hoveredObject.transform.position, size, rotation))
+                {
+                    occupiedPositions.Remove(c);
+                }
+                
+            }
+            moveMode = true;
+        }
+        else if (moveMode)
+        {
+            List<BuildingPiece> size = GetObjectSize(hoveredObject);
+            int rotation = GetObjectRotation(hoveredObject);
+            print(AreCellsFree(hoveredObject.transform.position, size, rotation));
+            if (AreCellsFree(hoveredObject.transform.position, size, rotation))
+            {
+                if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, groundLayer) && hit.transform.CompareTag("Ground"))
+                {
+                    Collider[] allColliders = hoveredObject.GetComponentsInChildren<Collider>();
+
+                    foreach (Collider collider in allColliders)
+                    {
+                        collider.enabled = true;
+                    }
+
+                    foreach (Vector3 c in GetCells(hoveredObject.transform.position, size, rotation))
+                    {
+                        occupiedPositions.Add(c);
+                    }
+
+                }
+                moveMode = false;
+            }
+        }
+
+        
+    }
 
     void RemoveObject()
     {
