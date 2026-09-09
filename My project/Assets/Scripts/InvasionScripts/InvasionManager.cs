@@ -29,8 +29,8 @@ public class InvasionManager : MonoBehaviour
         {
             Destroy(this);
         }
-
-
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
     }
 
     private void Update()
@@ -87,6 +87,8 @@ public class InvasionManager : MonoBehaviour
         player.layer = 3;
         UIcam.SetActive(false);
         canvas.SetActive(false);
+        Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.Locked;
     }
 
     public void SpawnEnemies()
