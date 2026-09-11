@@ -111,7 +111,7 @@ public class EnemyController : MonoBehaviour
             {
                 state = State.Search;
                 searchTimer = searchDuration;
-                pointWaitTimer = 0f;
+                pointWaitTimer = 2f;
                 agent.SetDestination(lastKnownPosition);
             }
             

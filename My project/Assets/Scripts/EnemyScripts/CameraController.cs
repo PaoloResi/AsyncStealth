@@ -96,6 +96,7 @@ public class CameraController : MonoBehaviour
                     if (nearestEnemy != null)
                     {
                         nearestEnemy.GetComponent<EnemyController>().lastKnownPosition = player.position;
+                        nearestEnemy.state = nearestEnemy.State.Search;
                     }
                     FacePlayer();
                     break;
