@@ -6,7 +6,7 @@ using UnityEngine.UI;
 public class EnemyController : MonoBehaviour
 {
 
-    private enum State {Patrol, Chase, Attack, Search}
+    public enum State {Patrol, Chase, Attack, Search}
     
     private NavMeshAgent agent;
     private List<PatrolIdentity> patrolPoints = new List<PatrolIdentity>();
@@ -28,7 +28,7 @@ public class EnemyController : MonoBehaviour
     public float eyeHeight = 1f;
     public bool playerInSightRange, playerInAttackRange;
 
-    private State state = State.Patrol;
+    public State state = State.Patrol;
     public Vector3 lastKnownPosition;
     private float searchTimer;
     private float searchDuration = 6f;
